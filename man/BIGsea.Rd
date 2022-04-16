@@ -6,25 +6,28 @@
 \usage{
 BIGsea(
   gene_list,
-  gmt_ls = NULL,
   nperm = 1000,
-  group = NULL,
-  subgroup = NULL,
-  S = "human"
+  species = "human",
+  ID = "SYMBOL",
+  category = NULL,
+  subcategory = NULL,
+  db = NULL
 )
 }
 \arguments{
-\item{gene_list}{named list object with named numeric vectors of gene symbols and logFC}
+\item{gene_list}{Named list object with named numeric vectors of gene symbols and logFC}
 
-\item{gmt_ls}{list object with gene ontology data}
+\item{nperm}{Numeric permutations for P-value calculations. Default is 1000}
 
-\item{nperm}{number of permutations for P-value calculations. Default is 1000}
+\item{species}{Character string denoting species of interest. Default is human}
 
-\item{group}{Which Geneset database you want to run GSEA on}
+\item{ID}{Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is SYMBOL}
 
-\item{subgroup}{Specify subgroup of Geneset database you want to run GSEA on. Below is the list of commonly used Genesets \cr
+\item{category}{Character string denoting Broad gene set database}
+
+\item{subcategory}{Character string denoting Broad gene set sub-database \cr
 \tabular{rrrrr}{
-\strong{Group} \tab    \strong{Sub-group}\cr
+\strong{category} \tab    \strong{subcategory}\cr
 C1  \tab      \cr
 C2  \tab      CGP\cr
 C2  \tab      CP\cr
@@ -42,11 +45,15 @@ C6  \tab      \cr
 H   \tab      \cr
 }}
 
-\item{S}{Specify specie for Geneset database default is human}
+\item{db}{If not using Broad databases, a data frame with gene ontology including category (gs_cat), subcategory (gs_subcat), gene set name (gs_name), and gene ID (gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
 }
 \value{
 Output of a list of list with GSEA results
 }
 \description{
-Run GSEA on multiple list using fgsea. More information about GSEA and geneset databases check https://www.gsea-msigdb.org/gsea/msigdb
+Run gene set enrichment analysis (GSEA) on multiple list using fgsea. More information about GSEA and geneset databases check https://www.gsea-msigdb.org/gsea/msigdb
+}
+\examples{
+BIGsea(example_gene_list, category="H", ID="ENSEMBL")
+BIGsea(example_gene_list, category="C2", subcategory="CP", ID="ENSEMBL")
 }

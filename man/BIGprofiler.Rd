@@ -42,7 +42,7 @@ C6  \tab      \cr
 H   \tab      \cr
 }}
 
-\item{db}{If not using Broad databases, a data frame with gene ontology including category (gs_cat), subcategory (gs_subcat), gene set name (gs_name), and gene ID (gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
+\item{db}{If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
 }
 \value{
 Data frame of enrichments including pathway, significance, and genes in pathway

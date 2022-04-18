@@ -4,30 +4,26 @@
 \alias{BIGenrichr}
 \title{Run EnrichR function on multiple Geneset databases on either gene list or modules of intertest}
 \usage{
-BIGenrichr(
-  gene_mod_list,
-  type = "gene",
-  gene_id = "HGNC",
-  dbs = c("MSigDB_Hallmark_2020"),
-  mod_of_interest = "all"
-)
+BIGenrichr(gene_list = NULL, ID = "SYMBOL", dbs = c("MSigDB_Hallmark_2020"))
 }
 \arguments{
-\item{gene_mod_list}{Here input either Genelist in HGNC or Ensembl ID format or input module object output from module function}
+\item{gene_list}{Here input either Genelist in SYMBOL or Ensembl ID format or input module object output from module function}
 
-\item{type}{Type can be either gene or module}
-
-\item{gene_id}{gene id is either HGNC or Ensembl}
+\item{ID}{gene id is either SYMBOL, ENSEMBL, ENTREZ}
 
 \item{dbs}{Enter the geneset database you want to run Enrichr on the default is MSigDB Hallmark 2020 to check available database run enrichR::listEnrichrDb()}
-
-\item{mod_of_interest}{Input your modules of interest by default will run modules}
 }
 \value{
 list with enrichr result for each geneset database
 }
 \description{
 Run EnrichR function on multiple Geneset databases on either gene list or modules of intertest
+}
+\examples{
+#Get gene names for enrichment
+gene_list <- list(HRV1 = names(example_gene_list[[1]]),
+                  HRV2 = names(example_gene_list[[2]]))
+BIGenrichr(gene_list, ID = "ENSEMBL")
 }
 \author{
 Basilin Benson

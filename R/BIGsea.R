@@ -26,12 +26,18 @@
 #'  }
 #' @param db If not using Broad databases, a data frame with gene ontology including category (gs_cat), subcategory (gs_subcat), gene set name (gs_name), and gene ID (gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)
 #'
-#' @return Output of a list of list with GSEA results
+#' @return Data frame of enrichments including pathway, significance, and leading edge genes
 #' @export
 #'
 #' @examples
 #' BIGsea(example_gene_list, category="H", ID="ENSEMBL")
 #' BIGsea(example_gene_list, category="C2", subcategory="CP", ID="ENSEMBL")
+#'
+#' #Use custom data base
+#' db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
+#'                  symbol = sample(names(example_gene_list[[1]]), 20))
+#' BIGsea(example_gene_list, ID="ENSEMBL", db=db)
+#'
 
 BIGsea <- function(gene_list, nperm=1000, species="human", ID="SYMBOL",
                    category = NULL, subcategory = NULL, db = NULL){
@@ -49,7 +55,19 @@ BIGsea <- function(gene_list, nperm=1000, species="human", ID="SYMBOL",
         dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
     }
   } else if(!is.null(db)){
-    db.format <- db
+    db.format <- db %>%
+      dplyr::mutate(gs_cat = "custom", gs_subcat=NA)
+    #Name columns to match mgsibdbr
+    colnames(db.format)[1] <- "gs_name"
+    if(ID == "SYMBOL"){
+      colnames(db.format)[2] <- "gene_symbol"
+    } else if(ID == "ENSEMBL"){
+      colnames(db.format)[2] <- "ensembl_gene"
+    } else if(ID == "ENTREZ"){
+      colnames(db.format)[2] <- "entrez_gene"
+    } else{
+      stop("Please like ID from SYMBOL, ENSEMBL, or ENTREZ.")
+    }
   } else {
     stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
   }
@@ -81,10 +99,10 @@ BIGsea <- function(gene_list, nperm=1000, species="human", ID="SYMBOL",
 
   #### Loop ####
   #Loop through each list in the gene_list object
-  for(genes in names(gene_list)){
-    message(genes)
+  for(g in names(gene_list)){
+    message(g)
     #Extract 1 gene list
-    genes.temp <- gene_list[[genes]]
+    genes.temp <- gene_list[[g]]
     #Order by fold change
     genes.temp <- sort(genes.temp, decreasing = TRUE)
 
@@ -108,19 +126,15 @@ BIGsea <- function(gene_list, nperm=1000, species="human", ID="SYMBOL",
                                     scoreType=scoreType) %>%
       as.data.frame() %>%
       dplyr::rename(FDR=padj) %>%
-      dplyr::mutate(gs_cat=category, gs_subcat=subcategory, .before=1)
+      dplyr::mutate(group=g, gs_cat=category, gs_subcat=subcategory, .before=1)
 
     #### Save ####
-    all.results[[genes]] <- fg.result
+    all.results[[g]] <- fg.result
   }
 
   #### Format output ####
   #Unlist results into 1 df
-  all.results.df <- do.call(rbind.data.frame, all.results) %>%
-    tibble::rownames_to_column("group") %>%
-    dplyr::mutate(group = gsub("[.][0-9]{0,4}","",group)) %>%
-    dplyr::mutate(pathway = sub("[A-Z]*_","",pathway)) %>%
-    dplyr::mutate(pathway = gsub("_"," ",pathway))
+  all.results.df <- dplyr::bind_rows(all.results)
 
   return(all.results.df)
 }

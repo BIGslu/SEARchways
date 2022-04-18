@@ -48,7 +48,7 @@ H   \tab      \cr
 \item{db}{If not using Broad databases, a data frame with gene ontology including category (gs_cat), subcategory (gs_subcat), gene set name (gs_name), and gene ID (gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
 }
 \value{
-Output of a list of list with GSEA results
+Data frame of enrichments including pathway, significance, and leading edge genes
 }
 \description{
 Run gene set enrichment analysis (GSEA) on multiple list using fgsea. More information about GSEA and geneset databases check https://www.gsea-msigdb.org/gsea/msigdb
@@ -56,4 +56,10 @@ Run gene set enrichment analysis (GSEA) on multiple list using fgsea. More infor
 \examples{
 BIGsea(example_gene_list, category="H", ID="ENSEMBL")
 BIGsea(example_gene_list, category="C2", subcategory="CP", ID="ENSEMBL")
+
+#Use custom data base
+db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
+                 symbol = sample(names(example_gene_list[[1]]), 20))
+BIGsea(example_gene_list, ID="ENSEMBL", db=db)
+
 }

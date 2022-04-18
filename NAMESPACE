@@ -2,6 +2,7 @@
 
 export("%>%")
 export(BIGenrichr)
+export(BIGprofiler)
 export(BIGsea)
 importFrom(httr,GET)
 importFrom(httr,http_status)

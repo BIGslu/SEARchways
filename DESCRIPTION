@@ -16,10 +16,11 @@ Imports:
     tidyr,
     msigdbr,
     tibble,
-    fgsea
+    fgsea,
+    clusterProfiler
 biocViews:
 Remotes: wjawaid/enrichR, BIGslu/BIGpicture
 Suggests: BIGpicture
 Depends: 
-    R (>= 2.10)
+    R (>= 4.1)
 LazyData: true

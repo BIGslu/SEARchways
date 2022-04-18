@@ -1,9 +1,10 @@
 #' @title BIGsea
 #' @description Run gene set enrichment analysis (GSEA) on multiple list using fgsea. More information about GSEA and geneset databases check https://www.gsea-msigdb.org/gsea/msigdb
 #' @param gene_list Named list object with named numeric vectors of gene symbols and logFC
-#' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is SYMBOL
+#' @param gene_df Data frame including variable/module groups (column 1: group), gene name (column2: gene), and log fold change (column 3: logFC). Can be used instead of gene_list
+#' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
 #' @param nperm Numeric permutations for P-value calculations. Default is 1000
-#' @param species Character string denoting species of interest. Default is human
+#' @param species Character string denoting species of interest. Default is "human"
 #' @param category Character string denoting Broad gene set database
 #' @param subcategory Character string denoting Broad gene set sub-database \cr
 #' \tabular{rrrrr}{
@@ -33,19 +34,28 @@
 #' BIGsea(example_gene_list, category="H", ID="ENSEMBL")
 #' BIGsea(example_gene_list, category="C2", subcategory="CP", ID="ENSEMBL")
 #'
+#' #Use gene_df
+#' gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
+#'                       gene = c(names(example_gene_list[[1]]),
+#'                                names(example_gene_list[[2]])),
+#'                      logFC = c(example_gene_list[[1]],
+#'                                example_gene_list[[2]]))
+#' BIGsea(gene_df=gene_df, category="H", ID="ENSEMBL")
+#'
 #' #Use custom data base
 #' db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
 #'                  symbol = sample(names(example_gene_list[[1]]), 20))
 #' BIGsea(example_gene_list, ID="ENSEMBL", db=db)
 #'
 
-BIGsea <- function(gene_list, nperm=1000, species="human", ID="SYMBOL",
+BIGsea <- function(gene_list = NULL, gene_df = NULL,
+                   nperm=1000, species="human", ID="SYMBOL",
                    category = NULL, subcategory = NULL, db = NULL){
-  ensembl_gene <- entrez_gene <- gene_symbol <- group <- gs_name <- gs_subcat <- padj <- pathway <- NULL
+  ensembl_gene <- entrez_gene <- gene_symbol <- group <- gs_name <- gs_subcat <- padj <- pathway <- col1 <- NULL
   #Blank list to hold results
   all.results <- list()
 
-  #### Data ####
+  #### Database ####
   #Load gene ontology
   if(!is.null(category)){
     db.format <- msigdbr::msigdbr(species, category)
@@ -97,12 +107,32 @@ BIGsea <- function(gene_list, nperm=1000, species="human", ID="SYMBOL",
                   function(x) unlist(db.format2[x[1],]))
   names(db.ls) <- rownames(db.format2)
 
+  #### Format data ####
+  if(!is.null(gene_df)){
+    gene_list_format <- list()
+    col1 <- colnames(gene_df)[1]
+    for(g in unique(gene_df[,1])){
+      temp <- gene_df %>%
+        dplyr::filter(get(col1) == g) %>%
+        dplyr::distinct()
+    gene_vec <- temp[,3]
+    names(gene_vec) <- temp[,2]
+
+    gene_list_format[[g]] <- gene_vec
+    }
+  } else if(!is.null(gene_list)){
+    gene_list_format <- gene_list
+  } else{
+    stop("Please provide either gene_list or gene_df.")
+  }
+
+
   #### Loop ####
-  #Loop through each list in the gene_list object
-  for(g in names(gene_list)){
+  #Loop through each list in the gene_list_format object
+  for(g in names(gene_list_format)){
     message(g)
     #Extract 1 gene list
-    genes.temp <- gene_list[[g]]
+    genes.temp <- gene_list_format[[g]]
     #Order by fold change
     genes.temp <- sort(genes.temp, decreasing = TRUE)
 

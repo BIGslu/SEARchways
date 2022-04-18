@@ -1,6 +1,7 @@
 #' Title
 #'
 #' @param gene_list Named list object with named numeric vectors of gene symbols and logFC
+#' @param gene_df Data frame including variable/module groups (column 1: group) and gene name (column2: gene). Can be used instead of gene_list
 #' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is SYMBOL
 #' @param species Character string denoting species of interest. Default is human
 #' @param category Character string denoting Broad gene set database
@@ -34,13 +35,19 @@
 #'                   HRV2 = names(example_gene_list[[2]]))
 #' BIGprofiler(gene_list, ID="ENSEMBL", category="H")
 #'
+#' # Use gene_df
+#' gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
+#'                       gene = c(names(example_gene_list[[1]]),
+#'                                names(example_gene_list[[2]])))
+#' BIGprofiler(gene_df=gene_df, ID="ENSEMBL", category="H")
+#'
 #' #Use custom data base
 #' db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
 #'                  symbol = sample(gene_list[[1]], 20))
 #'
 #' BIGprofiler(gene_list, ID="ENSEMBL", db=db)
 
-BIGprofiler <- function(gene_list = NULL, ID = "SYMBOL",
+BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
                         species = "human",
                         category = NULL, subcategory = NULL,
                         db = NULL){
@@ -87,14 +94,31 @@ BIGprofiler <- function(gene_list = NULL, ID = "SYMBOL",
     stop("Please like ID from SYMBOL, ENSEMBL, or ENTREZ.")
   }
 
+  ##### Format data ####
+  if(!is.null(gene_df)){
+    gene_list_format <- list()
+    col1 <- colnames(gene_df)[1]
+    col2 <- colnames(gene_df)[2]
+    for(g in unique(gene_df[,1])){
+      gene_list_format[[g]] <- gene_df %>%
+        dplyr::filter(get(col1) == g) %>%
+        dplyr::pull(get(col2)) %>% unique()
+    }
+  } else if(!is.null(gene_list)){
+    gene_list_format <- gene_list
+
+  } else{
+    stop("Please provide either gene_list or gene_df.")
+  }
+
   ##### Loop through gene df #####
   #Blank holders
   all.results <- list()
 
-  for(g in names(gene_list)){
+  for(g in names(gene_list_format)){
     print(g)
     #run enrichment on gene list
-    enrich.result <- clusterProfiler::enricher(gene=gene_list[[g]],
+    enrich.result <- clusterProfiler::enricher(gene=gene_list_format[[g]],
                                                TERM2GENE=db.format2[,1:2])
 
     #handle no enrichment results
@@ -138,7 +162,7 @@ BIGprofiler <- function(gene_list = NULL, ID = "SYMBOL",
         #Add ID columns for database names
         dplyr::left_join(db.species.clean, by = "pathway") %>%
         #Add columns for group info
-        dplyr::mutate(group=g, size_group = length(gene_list[[g]])) %>%
+        dplyr::mutate(group=g, size_group = length(gene_list_format[[g]])) %>%
         #Reorder variables
         dplyr::select(group, size_group,
                       gs_cat, gs_subcat, size_cat.subcat,

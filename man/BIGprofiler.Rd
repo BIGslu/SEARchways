@@ -6,6 +6,7 @@
 \usage{
 BIGprofiler(
   gene_list = NULL,
+  gene_df = NULL,
   ID = "SYMBOL",
   species = "human",
   category = NULL,
@@ -15,6 +16,8 @@ BIGprofiler(
 }
 \arguments{
 \item{gene_list}{Named list object with named numeric vectors of gene symbols and logFC}
+
+\item{gene_df}{Data frame including variable/module groups (column 1: group) and gene name (column2: gene). Can be used instead of gene_list}
 
 \item{ID}{Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is SYMBOL}
 
@@ -55,6 +58,12 @@ Title
 gene_list <- list(HRV1 = names(example_gene_list[[1]]),
                   HRV2 = names(example_gene_list[[2]]))
 BIGprofiler(gene_list, ID="ENSEMBL", category="H")
+
+# Use gene_df
+gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
+                      gene = c(names(example_gene_list[[1]]),
+                               names(example_gene_list[[2]])))
+BIGprofiler(gene_df=gene_df, ID="ENSEMBL", category="H")
 
 #Use custom data base
 db <- data.frame(module = c(rep("module1",10), rep("module2",10)),

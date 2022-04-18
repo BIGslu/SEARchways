@@ -4,10 +4,17 @@
 \alias{BIGenrichr}
 \title{Run EnrichR function on multiple Geneset databases on either gene list or modules of intertest}
 \usage{
-BIGenrichr(gene_list = NULL, ID = "SYMBOL", dbs = c("MSigDB_Hallmark_2020"))
+BIGenrichr(
+  gene_list = NULL,
+  gene_df = NULL,
+  ID = "SYMBOL",
+  dbs = c("MSigDB_Hallmark_2020")
+)
 }
 \arguments{
 \item{gene_list}{Here input either Genelist in SYMBOL or Ensembl ID format or input module object output from module function}
+
+\item{gene_df}{Data frame including variable/module groups (column 1: group) and gene name (column2: gene). Can be used instead of gene_list}
 
 \item{ID}{gene id is either SYMBOL, ENSEMBL, ENTREZ}
 
@@ -24,6 +31,12 @@ Run EnrichR function on multiple Geneset databases on either gene list or module
 gene_list <- list(HRV1 = names(example_gene_list[[1]]),
                   HRV2 = names(example_gene_list[[2]]))
 BIGenrichr(gene_list, ID = "ENSEMBL")
+
+# Use gene_df
+gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
+                      gene = c(names(example_gene_list[[1]]),
+                               names(example_gene_list[[2]])))
+BIGenrichr(gene_df=gene_df, ID="ENSEMBL")
 }
 \author{
 Basilin Benson

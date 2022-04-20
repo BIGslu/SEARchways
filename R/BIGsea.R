@@ -111,12 +111,12 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
   if(!is.null(gene_df)){
     gene_list_format <- list()
     col1 <- colnames(gene_df)[1]
-    for(g in unique(gene_df[,1])){
+    for(g in unique(unlist(gene_df[,1]))){
       temp <- gene_df %>%
         dplyr::filter(get(col1) == g) %>%
         dplyr::distinct()
-    gene_vec <- temp[,3]
-    names(gene_vec) <- temp[,2]
+    gene_vec <- unlist(temp[,3])
+    names(gene_vec) <- unlist(temp[,2])
 
     gene_list_format[[g]] <- gene_vec
     }

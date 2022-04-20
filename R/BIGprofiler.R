@@ -99,7 +99,7 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
     gene_list_format <- list()
     col1 <- colnames(gene_df)[1]
     col2 <- colnames(gene_df)[2]
-    for(g in unique(gene_df[,1])){
+    for(g in unique(unlist(gene_df[,1]))){
       gene_list_format[[g]] <- gene_df %>%
         dplyr::filter(get(col1) == g) %>%
         dplyr::pull(get(col2)) %>% unique()

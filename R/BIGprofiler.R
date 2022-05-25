@@ -1,6 +1,6 @@
-#' Title
+#' clusterProfiler of significant genes in Broad gene sets
 #'
-#' @param gene_list Named list object with named numeric vectors of gene symbols and logFC
+#' @param gene_list Named list object with gene symbols
 #' @param gene_df Data frame including variable/module groups (column 1: group) and gene name (column2: gene). Can be used instead of gene_list
 #' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is SYMBOL
 #' @param species Character string denoting species of interest. Default is human

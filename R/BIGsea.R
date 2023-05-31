@@ -31,21 +31,21 @@
 #' @export
 #'
 #' @examples
-#' BIGsea(example_gene_list, category="H", ID="ENSEMBL")
-#' BIGsea(example_gene_list, category="C2", subcategory="CP", ID="ENSEMBL")
+#' BIGsea(example.gene.list, category="H", ID="ENSEMBL")
+#' BIGsea(example.gene.list, category="C2", subcategory="CP", ID="ENSEMBL")
 #'
 #' #Use gene_df
 #' gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
-#'                       gene = c(names(example_gene_list[[1]]),
-#'                                names(example_gene_list[[2]])),
-#'                      logFC = c(example_gene_list[[1]],
-#'                                example_gene_list[[2]]))
+#'                       gene = c(names(example.gene.list[[1]]),
+#'                                names(example.gene.list[[2]])),
+#'                      logFC = c(example.gene.list[[1]],
+#'                                example.gene.list[[2]]))
 #' BIGsea(gene_df=gene_df, category="H", ID="ENSEMBL")
 #'
 #' #Use custom data base
 #' db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
-#'                  symbol = sample(names(example_gene_list[[1]]), 20))
-#' BIGsea(example_gene_list, ID="ENSEMBL", db=db)
+#'                  symbol = sample(names(example.gene.list[[1]]), 20))
+#' BIGsea(example.gene.list, ID="ENSEMBL", db=db)
 #'
 
 BIGsea <- function(gene_list = NULL, gene_df = NULL,

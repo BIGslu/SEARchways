@@ -27,9 +27,9 @@ HRV2 <- FC %>%
   slice_sample(n=100) %>%
   pull(meanFC, name=rowname)
 
-example_gene_list <- list(
+example.gene.list <- list(
   "HRV1" = HRV1,
   "HRV2" = HRV2
 )
 
-usethis::use_data(example_gene_list, overwrite = TRUE)
+usethis::use_data(example.gene.list, overwrite = TRUE)

@@ -105,14 +105,14 @@ listEnrichrSites <- function(...) {
 #'
 #' @examples
 #' #Get gene names for enrichment
-#' gene_list <- list(HRV1 = names(example_gene_list[[1]]),
-#'                   HRV2 = names(example_gene_list[[2]]))
+#' gene_list <- list(HRV1 = names(example.gene.list[[1]]),
+#'                   HRV2 = names(example.gene.list[[2]]))
 #' BIGenrichr(gene_list, ID = "ENSEMBL")
 #'
 #' # Use gene_df
 #' gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
-#'                       gene = c(names(example_gene_list[[1]]),
-#'                                names(example_gene_list[[2]])))
+#'                       gene = c(names(example.gene.list[[1]]),
+#'                                names(example.gene.list[[2]])))
 #' BIGenrichr(gene_df=gene_df, ID="ENSEMBL")
 
 BIGenrichr <- function(gene_list = NULL, gene_df = NULL,

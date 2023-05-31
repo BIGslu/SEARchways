@@ -2,7 +2,7 @@
 % Please edit documentation in R/BIGprofiler.R
 \name{BIGprofiler}
 \alias{BIGprofiler}
-\title{Title}
+\title{clusterProfiler of significant genes in Broad gene sets}
 \usage{
 BIGprofiler(
   gene_list = NULL,
@@ -15,7 +15,7 @@ BIGprofiler(
 )
 }
 \arguments{
-\item{gene_list}{Named list object with named numeric vectors of gene symbols and logFC}
+\item{gene_list}{Named list object with gene symbols}
 
 \item{gene_df}{Data frame including variable/module groups (column 1: group) and gene name (column2: gene). Can be used instead of gene_list}
 
@@ -51,18 +51,18 @@ H   \tab      \cr
 Data frame of enrichments including pathway, significance, and genes in pathway
 }
 \description{
-Title
+clusterProfiler of significant genes in Broad gene sets
 }
 \examples{
 #Get gene names for enrichment
-gene_list <- list(HRV1 = names(example_gene_list[[1]]),
-                  HRV2 = names(example_gene_list[[2]]))
+gene_list <- list(HRV1 = names(example.gene.list[[1]]),
+                  HRV2 = names(example.gene.list[[2]]))
 BIGprofiler(gene_list, ID="ENSEMBL", category="H")
 
 # Use gene_df
 gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
-                      gene = c(names(example_gene_list[[1]]),
-                               names(example_gene_list[[2]])))
+                      gene = c(names(example.gene.list[[1]]),
+                               names(example.gene.list[[2]])))
 BIGprofiler(gene_df=gene_df, ID="ENSEMBL", category="H")
 
 #Use custom data base

@@ -10,6 +10,6 @@
 #' @references Dill-McFarland et al. 2022. Eosinophil-mediated suppression and Anti-IL-5 enhancement of plasmacytoid dendritic cell interferon responses in asthma. J Allergy Clin Immunol. S0091-6749(22)00447-X. doi: 10.1016/j.jaci.2022.03.025. Online ahead of print.
 #' @description A list of names vectors, each containing numeric log2 fold change and gene ENSEMBL ID names.
 #' @docType data
-#' @name example_gene_list
+#' @name example.gene.list
 #' @keywords datasets
-"example_gene_list"
+"example.gene.list"

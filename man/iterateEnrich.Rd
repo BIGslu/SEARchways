@@ -66,8 +66,7 @@ List of data frames with length = number of gene sets: p-values for each iterati
 Iteratively run flexEnrich on a list of features containing multiple annotations. Will select a random annotation for a given feature and run enrichment n times. Returns p-values and k/K ratios for each iteration, as well as a summative data frame with median p-values, median k/K ratios, and FDR-correction of the median p-values.
 }
 \examples{
-df <- data.frame("annotation" = names(example.gene.list[[1]]),
-                 "feat" = c(1:400))
+df <- data.frame("annotation" = names(example.gene.list[[1]]), "feat" = c(1:400))
 iterateEnrich(anno_df = df, anno_featCol = "feat",
               anno_annotationCol = "annotation",
               niter = 5, ID = "ENSEMBL", category = "H")

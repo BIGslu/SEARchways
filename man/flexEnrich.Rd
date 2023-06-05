@@ -54,7 +54,9 @@ Data frame enrichments including pathway, significance, and k/K ratios
 Run hypergeometric enrichment on multiple lists using phyper. Permits gene symbols, Ensembl IDs, or Entrez IDs as gene identifiers and allows a background of protein-coding mouse genes or either whole-genome or protein-coding genes for human data. Also allows for custom backgrounds. Performs hypergeometric enrichment agains a Broad Gene Set database or a custom database.
 }
 \examples{
-flexEnrich(gene_list = example.gene.list, category = "H", ID = "ENSEMBL")
+gl <- list(names(example.gene.list[[1]]), names(example.gene.list[[2]]))
+names(gl) <- names(example.gene.list)
+flexEnrich(gene_list = gl, category = "H", ID = "ENSEMBL")
 }
 \author{
 Madison Cox

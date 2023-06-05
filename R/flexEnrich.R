@@ -21,7 +21,9 @@
 #' @export
 #'
 #' @examples
-#' flexEnrich(gene_list = example.gene.list, category = "H", ID = "ENSEMBL")
+#' gl <- list(names(example.gene.list[[1]]), names(example.gene.list[[2]]))
+#' names(gl) <- names(example.gene.list)
+#' flexEnrich(gene_list = gl, category = "H", ID = "ENSEMBL")
 flexEnrich <- function(gene_list = NULL,
                        gene_df = NULL,
                        ID = "SYMBOL",
@@ -147,16 +149,16 @@ flexEnrich <- function(gene_list = NULL,
     if(ID == "SYMBOL"){
       if(protein_coding == TRUE){
         if(species == "human"){
-          bg <- SEARchways::symbol.human.db.pc
+          bg <- symbol.human.db.pc
         }
         else if(species == "mouse"){
-          bg <- SEARchways::symbol.mouse.db.pc
+          bg <- symbol.mouse.db.pc
         }
         else{stop("Please enter either 'human' or 'mouse' for species.")}
       }
       else{
         if(species == "human"){
-          bg <- SEARchways::symbol.human.db.full
+          bg <- symbol.human.db.full
         }
         else if(species == "mouse"){
           stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
@@ -167,16 +169,16 @@ flexEnrich <- function(gene_list = NULL,
     else if(ID == "ENSEMBL"){
       if(protein_coding == TRUE){
         if(species == "human"){
-          bg <- SEARchways::ensembl.human.db.pc
+          bg <- ensembl.human.db.pc
         }
         else if(species == "mouse"){
-          bg <- SEARchways::ensembl.mouse.db.pc
+          bg <- ensembl.mouse.db.pc
         }
         else{stop("Please enter either 'human' or 'mouse' for species.")}
       }
       else{
         if(species == "human"){
-          bg <- SEARchways::ensembl.human.db.full
+          bg <- ensembl.human.db.full
         }
         else if(species == "mouse"){
           stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
@@ -187,18 +189,18 @@ flexEnrich <- function(gene_list = NULL,
     else if(ID == "ENTREZ"){
       if(protein_coding == TRUE){
         if(species == "human"){
-          bg <- SEARchways::entrez.human.db.pc
+          bg <- entrez.human.db.pc
         }
-        if(species == "mouse"){
-          bg <- SEARchways::entrez.mouse.db.pc
+        else if(species == "mouse"){
+          bg <- entrez.mouse.db.pc
         }
         else{stop("Please enter either 'human' or 'mouse' for species.")}
       }
       else{
         if(species == "human"){
-          bg <- SEARchways::entrez.human.db.full
+          bg <- entrez.human.db.full
         }
-        if(species == "mouse"){
+        else if(species == "mouse"){
           stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
         }
         else{stop("Please enter either 'human' or 'mouse' for species.")}
@@ -212,7 +214,6 @@ flexEnrich <- function(gene_list = NULL,
 
 
   ##### Loop through groups in gene_list_format #####
-  #Blank holders
   all.results <- list()
 
   for(g in names(gene_list_format)){
@@ -220,13 +221,7 @@ flexEnrich <- function(gene_list = NULL,
     query <- gene_list_format[[g]]
     n_genesets <- length(unique(db.format2$gs_name))
 
-    # pvals <- rep(NA, n_genesets)
-    # set_sizes <- rep(NA, n_genesets)
-    # overlaps <- rep(NA, n_genesets)
-    # set_names <- rep(NA, n_genesets)
-    # kK_ratios <- rep(NA, n_genesets)
-    # genes_in_overlap <- rep(NA, n_genesets)
-
+    # Blank holders
     pvals <- c()
     set_sizes <- c()
     overlaps <- c()
@@ -234,11 +229,8 @@ flexEnrich <- function(gene_list = NULL,
     kK_ratios <- c()
     genes_in_overlap <- c()
 
-
-    t1 <- Sys.time()
     # Loop through gene sets
     for(s in unique(db.format2$gs_name)){
-      #s <- unique(db.format2$gs_name)[i]
       set <- db.format2$geneID[which(db.format2$gs_name == s)]
       set_size = length(unique(set))
       query_in_set <- length(unique(base::intersect(set, query)))
@@ -250,16 +242,8 @@ flexEnrich <- function(gene_list = NULL,
       ## print progress ##
       i <- which(unique(db.format2$gs_name) == s)
       if(i/1000 == round(i/1000)){
-        t2 <- Sys.time()
         print(paste0("Iteration ", i, " out of ", length(unique(db.format2$gs_name))))
-        print(paste0("Total time: ", difftime(t2, t1, units = "mins"), " mins."))
-
       }
-      # set_sizes[i] <- set_size
-      # overlaps[i] <- query_in_set
-      # set_names[i] <- s
-      # kK_ratios[i] <- kK_ratio
-      # genes_in_overlap[i] <- query_genes_in_set
 
       set_sizes <- c(set_sizes, set_size)
       overlaps <- c(overlaps, query_in_set)
@@ -276,13 +260,9 @@ flexEnrich <- function(gene_list = NULL,
       }
 
       if(maxGeneSetSize < set_size | set_size < minGeneSetSize | query_in_set < minOverlap){
-        #pvals[i] <- NA
         pvals <- c(pvals, NA)
       } else{
-
-        #if(i/100 == round(i/100)) {print(Sys.time())}
         p <- stats::phyper(query_in_set - 1, set_size, (n_background_genes - set_size), n_query_genes, lower.tail = F)
-        #pvals[i] <- p
         pvals <- c(pvals, p)
       }
     }

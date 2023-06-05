@@ -27,8 +27,7 @@
 #' @export
 #'
 #' @examples
-#' df <- data.frame("annotation" = names(example.gene.list[[1]]),
-#'                  "feat" = c(1:400))
+#' df <- data.frame("annotation" = names(example.gene.list[[1]]), "feat" = c(1:400))
 #' iterateEnrich(anno_df = df, anno_featCol = "feat",
 #'               anno_annotationCol = "annotation",
 #'               niter = 5, ID = "ENSEMBL", category = "H")
@@ -113,7 +112,9 @@ iterateEnrich <- function(anno_df = NULL,
 
   iter_list <- foreach::foreach(i = 1:niter,
                                                       .packages = c("dplyr", "doParallel","msigdbr","stats","tibble", "foreach"),
-                                                      .export = c("flexEnrich")
+                                                      .export = c("flexEnrich", "ensembl.human.db.full", "ensembl.human.db.pc","ensembl.mouse.db.pc",
+                                                                  "entrez.human.db.full", "entrez.human.db.pc","entrez.mouse.db.pc",
+                                                                  "symbol.human.db.full", "symbol.human.db.pc","symbol.mouse.db.pc")
                                 ) %dopar% {
 
 
@@ -169,7 +170,7 @@ iterateEnrich <- function(anno_df = NULL,
                            recycle0 = TRUE)
     }
 
-    iter_list <- prof2 #BROKEN FIGURE IT OUT
+    iter_list <- prof2
 
   }
   parallel::stopCluster(cl)
@@ -185,16 +186,6 @@ iterateEnrich <- function(anno_df = NULL,
 
   df_k <- base_df %>%
     dplyr::select(pathway, dplyr::starts_with("k/K"))
-
-
-
-  ### combine with results of other iterations ###
-  # base_df <- base_df %>%
-  #   dplyr::full_join(prof2)
-
-
-
-
 
   ### get median p-values, perform correction, format result ###
 

@@ -112,7 +112,7 @@ listEnrichrSites <- function(...) {
 #' # Use gene_df
 #' gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
 #'                       gene = c(names(example.gene.list[[1]]),
-#'                                names(example.gene.list[[2]])))
+#'                       names(example.gene.list[[2]])))
 #' BIGenrichr(gene_df=gene_df, ID="ENSEMBL")
 
 BIGenrichr <- function(gene_list = NULL, gene_df = NULL,
@@ -122,6 +122,7 @@ BIGenrichr <- function(gene_list = NULL, gene_df = NULL,
   #### Intro messages ####
   options(enrichR.base.address = "https://maayanlab.cloud/Enrichr/")
   options(enrichR.live = TRUE)
+  options(enrichR.quiet = TRUE)
   packageStartupMessage("Welcome to enrichR\nChecking connection ... ", appendLF = TRUE)
   options(modEnrichR.use = TRUE)
   options(enrichR.sites.base.address = "https://maayanlab.cloud/")
@@ -133,6 +134,9 @@ BIGenrichr <- function(gene_list = NULL, gene_df = NULL,
     packageStartupMessage("Enrichr ... ", appendLF = FALSE)
     if (getOption("enrichR.live")) packageStartupMessage("Connection is Live!")
   }
+
+
+
 
   #### Format data ####
   #Set variables to Null
@@ -163,7 +167,7 @@ BIGenrichr <- function(gene_list = NULL, gene_df = NULL,
   }else if(ID == "ENSEMBL"){
     #Download Ensembl gene list to get HGNC symbols
     ensembl <- biomaRt::useEnsembl(biomart="ensembl",
-                                   dataset="hsapiens_gene_ensembl")
+                                   dataset="hsapiens_gene_ensembl", mirror = "uswest")
     all_genes <- biomaRt::getBM(attributes=c('ensembl_gene_id', 'hgnc_symbol'),
                                 mart = ensembl)
     #Convert within gene_list

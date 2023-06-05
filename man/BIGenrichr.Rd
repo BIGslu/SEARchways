@@ -35,7 +35,7 @@ BIGenrichr(gene_list, ID = "ENSEMBL")
 # Use gene_df
 gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
                       gene = c(names(example.gene.list[[1]]),
-                               names(example.gene.list[[2]])))
+                      names(example.gene.list[[2]])))
 BIGenrichr(gene_df=gene_df, ID="ENSEMBL")
 }
 \author{

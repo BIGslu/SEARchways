@@ -107,14 +107,15 @@ iterateEnrich <- function(anno_df = NULL,
 
   base_df <- data.frame("pathway" = unique(db.format$gs_name))
   ### iterate enrichment with individual annotations ###
-
+  parallel::clusterExport(cl, c("ensembl.human.db.pc", "ensembl.human.db.full", "ensembl.mouse.db.pc",
+                                "entrez.human.db.pc", "entrez.human.db.full", "entrez.mouse.db.pc",
+                                "symbol.human.db.pc", "symbol.human.db.full", "symbol.mouse.db.pc"))
   doParallel::registerDoParallel(cl)
 
   iter_list <- foreach::foreach(i = 1:niter,
                                                       .packages = c("dplyr", "doParallel","msigdbr","stats","tibble", "foreach"),
-                                                      .export = c("flexEnrich", "ensembl.human.db.full", "ensembl.human.db.pc","ensembl.mouse.db.pc",
-                                                                  "entrez.human.db.full", "entrez.human.db.pc","entrez.mouse.db.pc",
-                                                                  "symbol.human.db.full", "symbol.human.db.pc","symbol.mouse.db.pc")
+                                                      .export = c("flexEnrich"), .noexport = c("ensembl.human.db.pc")
+
                                 ) %dopar% {
 
 

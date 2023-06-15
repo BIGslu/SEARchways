@@ -149,16 +149,16 @@ flexEnrich <- function(gene_list = NULL,
     if(ID == "SYMBOL"){
       if(protein_coding == TRUE){
         if(species == "human"){
-          bg <- SEARchways:::symbol.human.db.pc
+          bg <- symbol.human.db.pc
         }
         else if(species == "mouse"){
-          bg <- SEARchways:::symbol.mouse.db.pc
+          bg <- symbol.mouse.db.pc
         }
         else{stop("Please enter either 'human' or 'mouse' for species.")}
       }
       else{
         if(species == "human"){
-          bg <- SEARchways:::symbol.human.db.full
+          bg <- symbol.human.db.full
         }
         else if(species == "mouse"){
           stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
@@ -169,16 +169,16 @@ flexEnrich <- function(gene_list = NULL,
     else if(ID == "ENSEMBL"){
       if(protein_coding == TRUE){
         if(species == "human"){
-          bg <- SEARchways:::ensembl.human.db.pc
+          bg <- ensembl.human.db.pc
         }
         else if(species == "mouse"){
-          bg <- SEARchways:::ensembl.mouse.db.pc
+          bg <- ensembl.mouse.db.pc
         }
         else{stop("Please enter either 'human' or 'mouse' for species.")}
       }
       else{
         if(species == "human"){
-          bg <- SEARchways:::ensembl.human.db.full
+          bg <- ensembl.human.db.full
         }
         else if(species == "mouse"){
           stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
@@ -189,16 +189,16 @@ flexEnrich <- function(gene_list = NULL,
     else if(ID == "ENTREZ"){
       if(protein_coding == TRUE){
         if(species == "human"){
-          bg <- SEARchways:::entrez.human.db.pc
+          bg <- entrez.human.db.pc
         }
         else if(species == "mouse"){
-          bg <- SEARchways:::entrez.mouse.db.pc
+          bg <- entrez.mouse.db.pc
         }
         else{stop("Please enter either 'human' or 'mouse' for species.")}
       }
       else{
         if(species == "human"){
-          bg <- SEARchways:::entrez.human.db.full
+          bg <- entrez.human.db.full
         }
         else if(species == "mouse"){
           stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")

@@ -72,4 +72,4 @@ usethis::use_data(ensembl.human.db.full,
                   symbol.human.db.full,
                   symbol.human.db.pc,
                   symbol.mouse.db.pc,
-                  internal = TRUE)
+                  internal = TRUE, overwrite = TRUE)

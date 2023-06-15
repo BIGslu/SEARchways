@@ -40,25 +40,36 @@ usethis::use_data(example.gene.list, overwrite = TRUE)
 symbol.human.db.full <- as.matrix(read.csv("data-raw/symbol.human.db.full.csv", header = T))[,1]
 entrez.human.db.full <- as.matrix(read.csv("data-raw/entrez.human.db.full.csv", header = T))[,1]
 ensembl.human.db.full <- as.matrix(read.csv("data-raw/ensembl.human.db.full.csv", header = T))[,1]
-usethis::use_data(symbol.human.db.full, overwrite = TRUE)
-usethis::use_data(entrez.human.db.full, overwrite = TRUE)
-usethis::use_data(ensembl.human.db.full, overwrite = TRUE)
+# usethis::use_data(symbol.human.db.full, overwrite = TRUE)
+# usethis::use_data(entrez.human.db.full, overwrite = TRUE)
+# usethis::use_data(ensembl.human.db.full, overwrite = TRUE)
 
 ## protein coding
 symbol.human.db.pc <- as.matrix(read.csv("data-raw/symbol.human.db.pc.csv", header = T))[,1]
 entrez.human.db.pc <- as.matrix(read.csv("data-raw/entrez.human.db.pc.csv", header = T))[,1]
 ensembl.human.db.pc <- as.matrix(read.csv("data-raw/ensembl.human.db.pc.csv", header = T))[,1]
-usethis::use_data(symbol.human.db.pc, overwrite = TRUE)
-usethis::use_data(entrez.human.db.pc, overwrite = TRUE)
-usethis::use_data(ensembl.human.db.pc, overwrite = TRUE)
+# usethis::use_data(symbol.human.db.pc, overwrite = TRUE)
+# usethis::use_data(entrez.human.db.pc, overwrite = TRUE)
+# usethis::use_data(ensembl.human.db.pc, overwrite = TRUE)
 
 # mouse
 ## protein coding
 symbol.mouse.db.pc <- as.matrix(read.csv("data-raw/symbol.mouse.db.pc.csv", header = T))[,1]
 entrez.mouse.db.pc <- as.matrix(read.csv("data-raw/entrez.mouse.db.pc.csv", header = T))[,1]
 ensembl.mouse.db.pc <- as.matrix(read.csv("data-raw/ensembl.mouse.db.pc.csv", header = T))[,1]
-usethis::use_data(symbol.mouse.db.pc, overwrite = TRUE)
-usethis::use_data(entrez.mouse.db.pc, overwrite = TRUE)
-usethis::use_data(ensembl.mouse.db.pc, overwrite = TRUE)
+# usethis::use_data(symbol.mouse.db.pc, overwrite = TRUE)
+# usethis::use_data(entrez.mouse.db.pc, overwrite = TRUE)
+# usethis::use_data(ensembl.mouse.db.pc, overwrite = TRUE)
 
+usethis::use_data(ensembl.human.db.full,
+                  ensembl.human.db.pc,
+                  ensembl.mouse.db.pc,
 
+                  entrez.human.db.full,
+                  entrez.human.db.pc,
+                  entrez.mouse.db.pc,
+
+                  symbol.human.db.full,
+                  symbol.human.db.pc,
+                  symbol.mouse.db.pc,
+                  internal = TRUE)

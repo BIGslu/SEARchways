@@ -11,6 +11,7 @@
 #' @param db Custom database
 #' @param custom_bg Custom background. Formatted as a vector of gene IDs.
 #' @param protein_coding TRUE or FALSE: do you want to limit the background to only protein-coding genes?
+#' @param protein_coding TRUE or FALSE: do you want to limit the background to only protein-coding genes? Default is TRUE
 #' @param minOverlap Minimum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1.
 #' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1e10.
 #' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated
@@ -32,7 +33,7 @@ flexEnrich <- function(gene_list = NULL,
                        subcategory = NULL,
                        db = NULL,
                        custom_bg = NULL,
-                       protein_coding = FALSE,
+                       protein_coding = TRUE,
                        minOverlap = 1,
                        minGeneSetSize = 10,
                        maxGeneSetSize = NULL,

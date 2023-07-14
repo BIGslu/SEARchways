@@ -267,17 +267,17 @@ flexEnrich <- function(gene_list = NULL,
     nrep <- length(unique(db.format2$gs_name))
 
     res.temp <- tibble::tibble("group" = rep(g, nrep),
-                       "n_query_genes" = rep(n_query_genes, nrep),
-                       "n_background_genes" = rep(n_background_genes, nrep),
-                       "gs_cat" = rep(category, nrep),
-                       "gs_subcat" = rep(subcategory, nrep),
-                       "pathway" = set_names,
-                       "n_pathway_genes" = set_sizes,
-                       "n_query_genes_in_pathway" = overlaps,
-                       "k/K" = kK_ratios,
-                       "pvalue" = pvals #,
-                  #     "genes" = genes_in_overlap
-                  )
+                               "n_query_genes" = rep(n_query_genes, nrep),
+                               "n_background_genes" = rep(n_background_genes, nrep),
+                               "gs_cat" = rep(category, nrep),
+                               "gs_subcat" = rep(subcategory, nrep),
+                               "pathway" = set_names,
+                               "n_pathway_genes" = set_sizes,
+                               "n_query_genes_in_pathway" = overlaps,
+                               "k/K" = kK_ratios,
+                               "pvalue" = pvals #,
+                               #     "genes" = genes_in_overlap
+    )
     if(print_genes == TRUE){
       res.temp$genes <- genes_in_overlap
     }

@@ -1,20 +1,19 @@
 #' Flexible hypergeometric enrichment
 #' @description
-#' Run hypergeometric enrichment on multiple lists using phyper. Permits gene symbols, Ensembl IDs, or Entrez IDs as gene identifiers and allows a background of protein-coding mouse genes or either whole-genome or protein-coding genes for human data. Also allows for custom backgrounds. Performs hypergeometric enrichment agains a Broad Gene Set database or a custom database.
+#' Run hypergeometric enrichment on multiple lists using phyper. Permits gene symbols, Ensembl IDs, or Entrez IDs as gene identifiers and allows a background of protein-coding mouse genes or either whole-genome or protein-coding genes for human data. Also allows for custom backgrounds. Performs hypergeometric enrichment against a Broad Gene Set database or a custom database.
 #'
 #' @param gene_list Named list object with gene IDs
 #' @param gene_df Data frame including variable/module groups (column 1: group), and gene name (column2: gene). Can be used instead of gene_list
 #' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
-#' @param species Character string denoting species of interest. "human" or "mouse." Default is "human"
+#' @param species Character string denoting species of interest. "human" or "mouse" Default is "human"
 #' @param category Character string denoting Broad gene set database
 #' @param subcategory Character string denoting Broad gene set sub-database
 #' @param db Custom database
 #' @param custom_bg Custom background. Formatted as a vector of gene IDs.
-#' @param protein_coding TRUE or FALSE: do you want to limit the background to only protein-coding genes?
 #' @param protein_coding TRUE or FALSE: do you want to limit the background to only protein-coding genes? Default is TRUE
 #' @param minOverlap Minimum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1.
-#' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1e10.
-#' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated
+#' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.
+#' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10
 #' @param print_genes TRUE or FALSE. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is TRUE. Leaving this parameter as TRUE will make the function run slowly for very large datasets.
 #' @author Madison Cox
 #'
@@ -22,9 +21,10 @@
 #' @export
 #'
 #' @examples
-#' gl <- list(names(example.gene.list[[1]]), names(example.gene.list[[2]]))
-#' names(gl) <- names(example.gene.list)
-#' flexEnrich(gene_list = gl, category = "H", ID = "ENSEMBL")
+#' gene_list <- list(HRV1 = names(example.gene.list[[1]]),
+#'                   HRV2 = names(example.gene.list[[2]]))
+#' flexEnrich(gene_list = gene_list, category = "H", ID = "ENSEMBL")
+
 flexEnrich <- function(gene_list = NULL,
                        gene_df = NULL,
                        ID = "SYMBOL",

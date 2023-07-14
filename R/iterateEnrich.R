@@ -141,6 +141,7 @@ iterateEnrich <- function(anno_df = NULL,
       syms <- syms[,anno_annotationCol][which(syms[,anno_featCol] == feat)]
       syms <- unlist(syms)
 
+      set.seed(42)
       sym.pick <- sample(syms,1) # choose random symbol from list of options
 
       gv <- c(gv, sym.pick)

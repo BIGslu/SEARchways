@@ -68,8 +68,6 @@ flexEnrich <- function(gene_list = NULL,
       else{
         db.format <- db.format %>%
           dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
-
-
       }
     }
   } else if(!is.null(db)){
@@ -147,67 +145,65 @@ flexEnrich <- function(gene_list = NULL,
     else{bg <- unique(custom_bg)}
   }
   else{
-    if(ID == "SYMBOL"){
-      if(protein_coding == TRUE){
-        if(species == "human"){
-          bg <- symbol.human.db.pc
+    if(!species %in% c("mouse","human")){
+      stop("Please enter either 'human' or 'mouse' for species.")
+    } else{
+      if(ID == "SYMBOL"){
+        if(protein_coding == TRUE){
+          if(species == "human"){
+            bg <- symbol.human.db.pc
+          }
+          else if(species == "mouse"){
+            bg <- symbol.mouse.db.pc
+          }
         }
-        else if(species == "mouse"){
-          bg <- symbol.mouse.db.pc
+        else{
+          if(species == "human"){
+            bg <- symbol.human.db.full
+          }
+          else if(species == "mouse"){
+            stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
+          }
         }
-        else{stop("Please enter either 'human' or 'mouse' for species.")}
       }
-      else{
-        if(species == "human"){
-          bg <- symbol.human.db.full
+      else if(ID == "ENSEMBL"){
+        if(protein_coding == TRUE){
+          if(species == "human"){
+            bg <- ensembl.human.db.pc
+          }
+          else if(species == "mouse"){
+            bg <- ensembl.mouse.db.pc
+          }
         }
-        else if(species == "mouse"){
-          stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
+        else{
+          if(species == "human"){
+            bg <- ensembl.human.db.full
+          }
+          else if(species == "mouse"){
+            stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
+          }
         }
-        else{stop("Please enter either 'human' or 'mouse' for species.")}
       }
+      else if(ID == "ENTREZ"){
+        if(protein_coding == TRUE){
+          if(species == "human"){
+            bg <- entrez.human.db.pc
+          }
+          else if(species == "mouse"){
+            bg <- entrez.mouse.db.pc
+          }
+        }
+        else{
+          if(species == "human"){
+            bg <- entrez.human.db.full
+          }
+          else if(species == "mouse"){
+            stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
+          }
+        }
+      }
+      else{stop("Please enter a valid ID. Options are SYMBOL, ENSEMBL, or ENTREZ")}
     }
-    else if(ID == "ENSEMBL"){
-      if(protein_coding == TRUE){
-        if(species == "human"){
-          bg <- ensembl.human.db.pc
-        }
-        else if(species == "mouse"){
-          bg <- ensembl.mouse.db.pc
-        }
-        else{stop("Please enter either 'human' or 'mouse' for species.")}
-      }
-      else{
-        if(species == "human"){
-          bg <- ensembl.human.db.full
-        }
-        else if(species == "mouse"){
-          stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
-        }
-        else{stop("Please enter either 'human' or 'mouse' for species.")}
-      }
-    }
-    else if(ID == "ENTREZ"){
-      if(protein_coding == TRUE){
-        if(species == "human"){
-          bg <- entrez.human.db.pc
-        }
-        else if(species == "mouse"){
-          bg <- entrez.mouse.db.pc
-        }
-        else{stop("Please enter either 'human' or 'mouse' for species.")}
-      }
-      else{
-        if(species == "human"){
-          bg <- entrez.human.db.full
-        }
-        else if(species == "mouse"){
-          stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
-        }
-        else{stop("Please enter either 'human' or 'mouse' for species.")}
-      }
-    }
-    else{stop("Please enter a valid ID. Options are SYMBOL, ENSEMBL, or ENTREZ")}
   }
 
   ##### Get background value for stats::phyper #####

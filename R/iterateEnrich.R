@@ -28,9 +28,11 @@
 #'
 #' @examples
 #' df <- data.frame("annotation" = names(example.gene.list[[1]]), "feat" = c(1:400))
+#'
 #' iterateEnrich(anno_df = df, anno_featCol = "feat",
 #'               anno_annotationCol = "annotation",
 #'               niter = 5, ID = "ENSEMBL", category = "H")
+
 iterateEnrich <- function(anno_df = NULL,
                           anno_featCol = NULL,
                           anno_annotationCol = NULL,
@@ -48,31 +50,31 @@ iterateEnrich <- function(anno_df = NULL,
                           maxGeneSetSize = 10000,
                           print_genes = TRUE,
                           ncores = 1){
-   gs_cat <- gs_subcat <- pathway <- `k/K` <- pvalue <- genes <- max_pval <- median_kK <- median_pval <- min_pval <- NULL
+  gs_cat <- gs_subcat <- pathway <- `k/K` <- pvalue <- genes <- max_pval <- median_kK <- median_pval <- min_pval <- NULL
 
 
   if(minOverlap > 1) {
     stop("Sorry, at this time iterative p-values can only be generated for a minOverlap of 1.")
   }
 
-   ###### Parallel ######
-   #setup parallel processors
-   chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+  ###### Parallel ######
+  #setup parallel processors
+  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
 
-   if (nzchar(chk) && chk == "TRUE") {
-     #Use 2 in CRAN/Travis/AppVeyor
-     processors.to.use <- 2
-   } else if (is.null(ncores)){
-     #Use 2 less than total if not user defined
-     processors.to.use <- parallel::detectCores()-2
-     if(processors.to.use == 0){
-       stop("Error processors: Default resulted in 0. Please correct.")}
-   } else {
-     #Use user defined number
-     processors.to.use <- ncores
-   }
+  if (nzchar(chk) && chk == "TRUE") {
+    #Use 2 in CRAN/Travis/AppVeyor
+    processors.to.use <- 2
+  } else if (is.null(ncores)){
+    #Use 2 less than total if not user defined
+    processors.to.use <- parallel::detectCores()-2
+    if(processors.to.use == 0){
+      stop("Error processors: Default resulted in 0. Please correct.")}
+  } else {
+    #Use user defined number
+    processors.to.use <- ncores
+  }
 
-   cl <- parallel::makeCluster(processors.to.use)
+  cl <- parallel::makeCluster(processors.to.use)
 
   ### get pathway names for base data frame ###
   if(!is.null(category)){
@@ -110,28 +112,29 @@ iterateEnrich <- function(anno_df = NULL,
 
   parallel::clusterExport(cl, c("ensembl.human.db.pc", "ensembl.human.db.full", "ensembl.mouse.db.pc",
                                 "entrez.human.db.pc", "entrez.human.db.full", "entrez.mouse.db.pc",
-                                "symbol.human.db.pc", "symbol.human.db.full", "symbol.mouse.db.pc"), envir = environment())
+                                "symbol.human.db.pc", "symbol.human.db.full", "symbol.mouse.db.pc"),
+                          envir = environment())
   doParallel::registerDoParallel(cl)
 
   iter_list <- foreach::foreach(i = 1:niter,
-                                                      .packages = c("dplyr", "doParallel","msigdbr","stats","tibble", "foreach"),
-                                                      .export = c("flexEnrich"), .noexport = c("ensembl.human.db.pc",
-                                                                                               "ensembl.human.db.full",
-                                                                                               "ensembl.mouse.db.pc",
+                                .packages = c("dplyr", "doParallel","msigdbr","stats","tibble", "foreach"),
+                                .export = c("flexEnrich"), .noexport = c("ensembl.human.db.pc",
+                                                                         "ensembl.human.db.full",
+                                                                         "ensembl.mouse.db.pc",
 
-                                                                                               "entrez.human.db.pc",
-                                                                                               "entrez.human.db.full",
-                                                                                               "entrez.mouse.db.pc",
+                                                                         "entrez.human.db.pc",
+                                                                         "entrez.human.db.full",
+                                                                         "entrez.mouse.db.pc",
 
-                                                                                               "symbol.human.db.pc",
-                                                                                               "symbol.human.db.full",
-                                                                                               "symbol.mouse.db.pc")
+                                                                         "symbol.human.db.pc",
+                                                                         "symbol.human.db.full",
+                                                                         "symbol.mouse.db.pc")
 
-                                ) %dopar% {
+  ) %dopar% {
 
 
-                                                                    gl <- list()
-                                                                    gv <- c()
+    gl <- list()
+    gv <- c()
     ### Get single annotation for each feature ###
     for(feat in unique(unlist(anno_df[,anno_featCol]))){
       syms <- anno_df

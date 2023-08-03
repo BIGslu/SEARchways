@@ -13,7 +13,7 @@ flexEnrich(
   subcategory = NULL,
   db = NULL,
   custom_bg = NULL,
-  protein_coding = FALSE,
+  protein_coding = TRUE,
   minOverlap = 1,
   minGeneSetSize = 10,
   maxGeneSetSize = NULL,
@@ -27,7 +27,7 @@ flexEnrich(
 
 \item{ID}{Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"}
 
-\item{species}{Character string denoting species of interest. "human" or "mouse." Default is "human"}
+\item{species}{Character string denoting species of interest. "human" or "mouse" Default is "human"}
 
 \item{category}{Character string denoting Broad gene set database}
 
@@ -37,13 +37,13 @@ flexEnrich(
 
 \item{custom_bg}{Custom background. Formatted as a vector of gene IDs.}
 
-\item{protein_coding}{TRUE or FALSE: do you want to limit the background to only protein-coding genes?}
+\item{protein_coding}{TRUE or FALSE: do you want to limit the background to only protein-coding genes? Default is TRUE}
 
 \item{minOverlap}{Minimum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1.}
 
-\item{minGeneSetSize}{Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1e10.}
+\item{minGeneSetSize}{Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.}
 
-\item{maxGeneSetSize}{Maximum size of a reference gene set for hypergeometric enrichment to be calculated}
+\item{maxGeneSetSize}{Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10}
 
 \item{print_genes}{TRUE or FALSE. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is TRUE. Leaving this parameter as TRUE will make the function run slowly for very large datasets.}
 }
@@ -51,12 +51,12 @@ flexEnrich(
 Data frame enrichments including pathway, significance, and k/K ratios
 }
 \description{
-Run hypergeometric enrichment on multiple lists using phyper. Permits gene symbols, Ensembl IDs, or Entrez IDs as gene identifiers and allows a background of protein-coding mouse genes or either whole-genome or protein-coding genes for human data. Also allows for custom backgrounds. Performs hypergeometric enrichment agains a Broad Gene Set database or a custom database.
+Run hypergeometric enrichment on multiple lists using phyper. Permits gene symbols, Ensembl IDs, or Entrez IDs as gene identifiers and allows a background of protein-coding mouse genes or either whole-genome or protein-coding genes for human data. Also allows for custom backgrounds. Performs hypergeometric enrichment against a Broad Gene Set database or a custom database.
 }
 \examples{
-gl <- list(names(example.gene.list[[1]]), names(example.gene.list[[2]]))
-names(gl) <- names(example.gene.list)
-flexEnrich(gene_list = gl, category = "H", ID = "ENSEMBL")
+gene_list <- list(HRV1 = names(example.gene.list[[1]]),
+                  HRV2 = names(example.gene.list[[2]]))
+flexEnrich(gene_list = gene_list, category = "H", ID = "ENSEMBL")
 }
 \author{
 Madison Cox

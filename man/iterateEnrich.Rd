@@ -16,7 +16,7 @@ iterateEnrich(
   subcategory = NULL,
   db = NULL,
   custom_bg = NULL,
-  protein_coding = FALSE,
+  protein_coding = TRUE,
   minOverlap = 1,
   minGeneSetSize = 10,
   maxGeneSetSize = 10000,
@@ -47,13 +47,13 @@ iterateEnrich(
 
 \item{custom_bg}{Custom background. Formatted as a vector of gene IDs.}
 
-\item{protein_coding}{TRUE or FALSE: do you want to limit the background to only protein-coding genes?}
+\item{protein_coding}{TRUE or FALSE: do you want to limit the background to only protein-coding genes? Default is TRUE}
 
 \item{minOverlap}{Minimum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1. For the iterative function, the only valid value is 1 at the moment.}
 
-\item{minGeneSetSize}{Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1e10.}
+\item{minGeneSetSize}{Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.}
 
-\item{maxGeneSetSize}{Maximum size of a reference gene set for hypergeometric enrichment to be calculated}
+\item{maxGeneSetSize}{Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10}
 
 \item{print_genes}{TRUE or FALSE. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is TRUE. Leaving this parameter as TRUE will make the function run slowly for very large datasets.}
 
@@ -67,6 +67,7 @@ Iteratively run flexEnrich on a list of features containing multiple annotations
 }
 \examples{
 df <- data.frame("annotation" = names(example.gene.list[[1]]), "feat" = c(1:400))
+
 iterateEnrich(anno_df = df, anno_featCol = "feat",
               anno_annotationCol = "annotation",
               niter = 5, ID = "ENSEMBL", category = "H")

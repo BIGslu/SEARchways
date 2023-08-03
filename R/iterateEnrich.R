@@ -14,10 +14,10 @@
 #' @param subcategory Character string denoting Broad gene set sub-database
 #' @param db Custom database
 #' @param custom_bg Custom background. Formatted as a vector of gene IDs.
-#' @param protein_coding TRUE or FALSE: do you want to limit the background to only protein-coding genes?
+#' @param protein_coding TRUE or FALSE: do you want to limit the background to only protein-coding genes? Default is TRUE
 #' @param minOverlap Minimum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1. For the iterative function, the only valid value is 1 at the moment.
-#' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1e10.
-#' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated
+#' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.
+#' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10
 #' @param print_genes TRUE or FALSE. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is TRUE. Leaving this parameter as TRUE will make the function run slowly for very large datasets.
 #' @param ncores Number of cores for parallel processing. Default is 1
 #' @author Madison Cox
@@ -27,10 +27,14 @@
 #' @export
 #'
 #' @examples
+
 #' df <- data.frame("annotation" = names(example.gene.list[[1]]), "feat" = paste0("probe", rep(1:25, 4)))
+#' df <- data.frame("annotation" = names(example.gene.list[[1]]), "feat" = c(1:400))
+#'
 #' iterateEnrich(anno_df = df, anno_featCol = "feat",
 #'               anno_annotationCol = "annotation",
 #'               niter = 5, ID = "ENSEMBL", category = "H")
+
 iterateEnrich <- function(anno_df = NULL,
                           anno_featCol = NULL,
                           anno_annotationCol = NULL,
@@ -42,37 +46,37 @@ iterateEnrich <- function(anno_df = NULL,
                           subcategory = NULL,
                           db = NULL,
                           custom_bg = NULL,
-                          protein_coding = FALSE,
+                          protein_coding = TRUE,
                           minOverlap = 1,
                           minGeneSetSize = 10,
                           maxGeneSetSize = 10000,
                           print_genes = TRUE,
                           ncores = 1){
-   gs_cat <- gs_subcat <- pathway <- `k/K` <- pvalue <- genes <- max_pval <- median_kK <- median_pval <- min_pval <- NULL
+  gs_cat <- gs_subcat <- pathway <- `k/K` <- pvalue <- genes <- max_pval <- median_kK <- median_pval <- min_pval <- NULL
 
 
   if(minOverlap > 1) {
     stop("Sorry, at this time iterative p-values can only be generated for a minOverlap of 1.")
   }
 
-   ###### Parallel ######
-   #setup parallel processors
-   chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+  ###### Parallel ######
+  #setup parallel processors
+  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
 
-   if (nzchar(chk) && chk == "TRUE") {
-     #Use 2 in CRAN/Travis/AppVeyor
-     processors.to.use <- 2
-   } else if (is.null(ncores)){
-     #Use 2 less than total if not user defined
-     processors.to.use <- parallel::detectCores()-2
-     if(processors.to.use == 0){
-       stop("Error processors: Default resulted in 0. Please correct.")}
-   } else {
-     #Use user defined number
-     processors.to.use <- ncores
-   }
+  if (nzchar(chk) && chk == "TRUE") {
+    #Use 2 in CRAN/Travis/AppVeyor
+    processors.to.use <- 2
+  } else if (is.null(ncores)){
+    #Use 2 less than total if not user defined
+    processors.to.use <- parallel::detectCores()-2
+    if(processors.to.use == 0){
+      stop("Error processors: Default resulted in 0. Please correct.")}
+  } else {
+    #Use user defined number
+    processors.to.use <- ncores
+  }
 
-   cl <- parallel::makeCluster(processors.to.use)
+  cl <- parallel::makeCluster(processors.to.use)
 
   ### get pathway names for base data frame ###
   if(!is.null(category)){
@@ -110,34 +114,36 @@ iterateEnrich <- function(anno_df = NULL,
 
   parallel::clusterExport(cl, c("ensembl.human.db.pc", "ensembl.human.db.full", "ensembl.mouse.db.pc",
                                 "entrez.human.db.pc", "entrez.human.db.full", "entrez.mouse.db.pc",
-                                "symbol.human.db.pc", "symbol.human.db.full", "symbol.mouse.db.pc"), envir = environment())
+                                "symbol.human.db.pc", "symbol.human.db.full", "symbol.mouse.db.pc"),
+                          envir = environment())
   doParallel::registerDoParallel(cl)
 
   iter_list <- foreach::foreach(i = 1:niter,
-                                                      .packages = c("dplyr", "doParallel","msigdbr","stats","tibble", "foreach"),
-                                                      .export = c("flexEnrich"), .noexport = c("ensembl.human.db.pc",
-                                                                                               "ensembl.human.db.full",
-                                                                                               "ensembl.mouse.db.pc",
+                                .packages = c("dplyr", "doParallel","msigdbr","stats","tibble", "foreach"),
+                                .export = c("flexEnrich"), .noexport = c("ensembl.human.db.pc",
+                                                                         "ensembl.human.db.full",
+                                                                         "ensembl.mouse.db.pc",
 
-                                                                                               "entrez.human.db.pc",
-                                                                                               "entrez.human.db.full",
-                                                                                               "entrez.mouse.db.pc",
+                                                                         "entrez.human.db.pc",
+                                                                         "entrez.human.db.full",
+                                                                         "entrez.mouse.db.pc",
 
-                                                                                               "symbol.human.db.pc",
-                                                                                               "symbol.human.db.full",
-                                                                                               "symbol.mouse.db.pc")
+                                                                         "symbol.human.db.pc",
+                                                                         "symbol.human.db.full",
+                                                                         "symbol.mouse.db.pc")
 
-                                ) %dopar% {
+  ) %dopar% {
 
 
-                                                                    gl <- list()
-                                                                    gv <- c()
+    gl <- list()
+    gv <- c()
     ### Get single annotation for each feature ###
     for(feat in unique(unlist(anno_df[,anno_featCol]))){
       syms <- anno_df
       syms <- syms[,anno_annotationCol][which(syms[,anno_featCol] == feat)]
       syms <- unlist(syms)
 
+      set.seed(42)
       sym.pick <- sample(syms,1) # choose random symbol from list of options
 
       gv <- c(gv, sym.pick)

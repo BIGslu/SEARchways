@@ -4,8 +4,8 @@
 #'
 #'
 #' @param anno_df A data frame containing features and corresponding gene IDs to subject to iterative hypergeometric enrichment
-#' @param anno_featCol A string with the name of the column containing the feature IDs
-#' @param anno_annotationCol A string with the name of the column containing the gene IDs
+#' @param anno_featCol A string with the name of the column containing the feature IDs (e.g. methylation probes, SNP IDs, ATAC-seq peaks)
+#' @param anno_annotationCol A string with the name of the column containing the gene IDs (e.g. HGNC symbols, Entrez IDs, Ensembl IDs)
 #' @param niter Number of iterations. Default is 100.
 #' @param p.adjust.method Method for p-value adjustment from p.adjust.methods(). Default is "fdr"
 #' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
@@ -27,7 +27,7 @@
 #' @export
 #'
 #' @examples
-#' df <- data.frame("annotation" = names(example.gene.list[[1]]), "feat" = c(1:400))
+#' df <- data.frame("annotation" = names(example.gene.list[[1]]), "feat" = paste0("probe", rep(1:25, 4)))
 #' iterateEnrich(anno_df = df, anno_featCol = "feat",
 #'               anno_annotationCol = "annotation",
 #'               niter = 5, ID = "ENSEMBL", category = "H")

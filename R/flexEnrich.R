@@ -94,9 +94,7 @@ flexEnrich <- function(gene_list = NULL,
       dplyr::pull(gs_name)
     db.format <- db.format %>%
       dplyr::filter(gs_name %in% good_pw)
-  }
-
-  else {
+  } else {
     stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
   }
 
@@ -143,11 +141,10 @@ flexEnrich <- function(gene_list = NULL,
       stop("None of your input gene IDs are present in your background. Are you sure you used the same ID format?")
     }
     else{bg <- unique(custom_bg)}
-  }
-  else{
+  } else{
     if(!species %in% c("mouse","human")){
       stop("Please enter either 'human' or 'mouse' for species.")
-    } else{
+    } else {
       if(ID == "SYMBOL"){
         if(protein_coding == TRUE){
           if(species == "human"){
@@ -278,7 +275,7 @@ flexEnrich <- function(gene_list = NULL,
                                "pvalue" = pvals #,
                                #     "genes" = genes_in_overlap
     )
-    if(print_genes == TRUE){
+    if(print_genes){
       res.temp$genes <- genes_in_overlap
     }
 

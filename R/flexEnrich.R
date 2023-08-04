@@ -36,15 +36,10 @@ flexEnrich <- function(gene_list = NULL,
                        protein_coding = TRUE,
                        minOverlap = 1,
                        minGeneSetSize = 10,
-                       maxGeneSetSize = NULL,
+                       maxGeneSetSize = 1e10,
                        print_genes = TRUE){
 
   FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_cat <- gs_subcat <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- NULL
-
-  ### set max gene set size to impossibly large if not specified ###
-  if(is.null(maxGeneSetSize)){
-    maxGeneSetSize <- 1e10
-  }
 
   ##### Database #####
   #Load gene ontology

@@ -230,7 +230,7 @@ flexEnrich <- function(gene_list = NULL,
       query_in_set <- length(unique(base::intersect(set, query)))
       kK_ratio <- query_in_set/set_size
       if(print_genes == TRUE){
-        query_genes_in_set <- paste0(unique(base::intersect(set, query)), collapse = ";")
+        query_genes_in_set <- list(sort(unique(base::intersect(set, query))))
       }
 
       ## print progress ##

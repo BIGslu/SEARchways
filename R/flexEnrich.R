@@ -284,9 +284,9 @@ flexEnrich <- function(gene_list = NULL,
 
 
     res.temp <- res.temp %>%
-      dplyr::filter(n_pathway_genes > minGeneSetSize,
-                    n_pathway_genes < maxGeneSetSize,
-                    n_query_genes_in_pathway > minOverlap,
+      dplyr::filter(n_pathway_genes >= minGeneSetSize,
+                    n_pathway_genes <= maxGeneSetSize,
+                    n_query_genes_in_pathway >= minOverlap,
                     !is.na(pvalue))
 
 

@@ -36,7 +36,7 @@
 #' @param minOverlap Minimum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1. For the iterative function, the only valid value is 1 at the moment.
 #' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.
 #' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10
-#' @param print_genes TRUE or FALSE. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is TRUE. Leaving this parameter as TRUE will make the function run slowly for very large datasets.
+#' @param print_genes Logical. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is FALSE. Setting this parameter as TRUE will make the function run slowly for very large datasets.
 #' @param ncores Number of cores for parallel processing. Default is 1
 #' @author Madison Cox
 #'
@@ -73,7 +73,7 @@ iterateEnrich <- function(anno_df = NULL,
                           minOverlap = 1,
                           minGeneSetSize = 10,
                           maxGeneSetSize = 10000,
-                          print_genes = TRUE,
+                          print_genes = FALSE,
                           ncores = 1){
   gs_cat <- gs_subcat <- pathway <- `k/K` <- pvalue <- genes <- max_pval <- median_kK <- median_pval <- min_pval <- NULL
 

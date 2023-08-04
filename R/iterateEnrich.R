@@ -77,10 +77,6 @@ iterateEnrich <- function(anno_df = NULL,
                           ncores = 1){
   gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
 
-
-  if(minOverlap > 1) {
-    stop("Sorry, at this time iterative p-values can only be generated for a minOverlap of 1.")
-  }
   #Set colnames if not provided
   if(is.null(anno_featCol)) { anno_featCol <- colnames(anno_df[1])}
   if(is.null(anno_annotationCol)) { anno_annotationCol <- colnames(anno_df[2])}

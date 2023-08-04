@@ -75,7 +75,7 @@ iterateEnrich <- function(anno_df = NULL,
                           maxGeneSetSize = 1e10,
                           print_genes = FALSE,
                           ncores = 1){
-  gs_cat <- gs_subcat <- pathway <- `k/K` <- pvalue <- genes <- max_pval <- median_kK <- median_pval <- min_pval <- NULL
+  gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
 
 
   if(minOverlap > 1) {
@@ -136,7 +136,6 @@ iterateEnrich <- function(anno_df = NULL,
     stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
   }
 
-  base_df <- data.frame("pathway" = unique(db.format$gs_name))
   ###### iterate enrichment with individual annotations ######
 
   parallel::clusterExport(cl, c("ensembl.human.db.pc", "ensembl.human.db.full", "ensembl.mouse.db.pc",
@@ -225,86 +224,109 @@ iterateEnrich <- function(anno_df = NULL,
   }
   parallel::stopCluster(cl)
 
+  ###### Clean results ######
+  base_df <- data.frame("pathway" = unique(db.format$gs_name))
+
   for(i in 1:length(iter_list)){
-    df <- as.data.frame(iter_list[[i]])
-    base_df <- base_df %>%
-      dplyr::full_join(df, by = c("pathway" = "pathway"))
-  }
-
-  df_p <- base_df %>%
-    dplyr::select(pathway, dplyr::starts_with("pvalue"))
-
-  df_k <- base_df %>%
-    dplyr::select(pathway, dplyr::starts_with("k/K"))
-
-  ### get median p-values, perform correction, format result ###
-
-  # remove rows with all NA values (no enrichment in any iteration)
-  df_p <- df_p[rowSums(is.na(df_p[2:(niter+1)])) != (ncol(df_p)-1), ]
-  df_k <- df_k[rowSums(is.na(df_k[2:(niter+1)])) != (ncol(df_k)-1), ]
-
-  if(print_genes == TRUE){
-    df_genes <- base_df %>%
-      dplyr::select(pathway, dplyr::starts_with("genes")) %>%
-      dplyr::filter(pathway %in% df_p$pathway)
-
-    results_vec_genes <- rep(NA, nrow(df_genes))
-    for(i in 1:nrow(df_genes)){
-      genes_in_row <- c()
-      for(j in 2:ncol(df_genes)){
-        if(!is.na(df_genes[i,j])){
-          el <- stringr::str_split_1(df_genes[i,j], ";")
-        } else{
-          el <- NA
-        }
-        genes_in_row <- unique(c(genes_in_row, el))
-      }
-      results_vec_genes[i] <- paste0(genes_in_row, collapse = ";")
+    result_df <- as.data.frame(iter_list[[i]])
+    if(nrow(result_df)>0){
+      base_df <- base_df %>%
+        dplyr::full_join(result_df, by = c("pathway" = "pathway"))
     }
   }
 
-
-  results_df_k <- replace(df_k, is.na(df_k),  0)# NA overlaps recoded as 0
-  results_df_k <- results_df_k %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(median_kK = stats::median(dplyr::c_across(dplyr::where(~is.numeric(.x))), na.rm=FALSE)) %>% # calculate medians across iterations
-    dplyr::ungroup() %>%
-    dplyr::select(pathway, median_kK)
-
-  results_df_summary <- replace(df_p, is.na(df_p), 1) # NA p-values recoded as 1
-  results_df_summary <- results_df_summary %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(median_pval = stats::median(dplyr::c_across(dplyr::where(~is.numeric(.x))), na.rm=FALSE)) %>% # calculate medians across iterations
-    dplyr::mutate(max_pval = max(dplyr::c_across(dplyr::where(~is.numeric(.x))), na.rm = FALSE),
-                  min_pval = min(dplyr::c_across(dplyr::where(~is.numeric(.x))), na.rm = FALSE)) %>%
-    dplyr::ungroup() %>% #undo rowwise
-    dplyr::select(pathway, median_pval, min_pval, max_pval) %>%
-    dplyr::left_join(results_df_k, by = c("pathway" = "pathway"))
-  results_df2_p <- df_p %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(median_pval = stats::median(dplyr::c_across(dplyr::where(~is.numeric(.x))), na.rm=FALSE)) %>% # calculate medians across iterations
-    dplyr::ungroup()
-
-  results_df2_k <- df_k %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(median_kK = stats::median(dplyr::c_across(dplyr::where(~is.numeric(.x))), na.rm=FALSE)) %>% # calculate medians across iterations
-    dplyr::ungroup()
-
-  # p adjustment
-  results_df_summary[,toupper(p.adjust.method)] <- stats::p.adjust(results_df_summary$median_pval, method = p.adjust.method)
-
-  results_df_summary <- results_df_summary %>%
-    dplyr::rename(`k/K` = median_kK) %>%
-    dplyr::mutate("group" = deparse(substitute(anno_df)), .before = pathway)
-
-  if(print_genes == TRUE){
-    results_df_summary <- results_df_summary %>%
-      dplyr::mutate(overlap_in_any_iteration = results_vec_genes)
+  if(ncol(base_df)==1){ stop("No gene sets meet criteria. Consider increasing minOverlap or decreasing minGeneSetSize")
   }
 
+  ###### Calculate summary ######
+  #If any enrichment has results
+  if(any(!is.na(base_df[,grepl("pvalue",colnames(base_df))]))){
+    result_format <- base_df %>% dplyr::select(pathway)
+
+    for(dat in c("pvalue_","k_","K_","k/K_")){
+      df_temp <- base_df %>%
+        dplyr::select(pathway, dplyr::starts_with(dat, ignore.case = FALSE))
+      # remove rows with all NA values (no enrichment in any iteration)
+      df_temp <- df_temp[rowSums(is.na(df_temp[2:(niter+1)])) != (ncol(df_temp)-1), ]
+
+      if(dat %in% c("pvalue_","k_","k/K_")){
+        if(dat %in% c("pvalue_")){
+          # Fill is NA
+          df_fill <- replace(df_temp, is.na(df_temp),  1)
+          results[["p_iterations"]] <- df_fill
+
+          #Calculate stats
+          results_med <- df_fill %>%
+            dplyr::rowwise() %>%
+            dplyr::mutate(
+              #min
+              min = min(dplyr::c_across(
+                dplyr::where(~is.numeric(.x))), na.rm=FALSE),
+              #max
+              max = max(dplyr::c_across(
+                dplyr::where(~is.numeric(.x))), na.rm=FALSE),
+              #median
+              median = stats::median(dplyr::c_across(
+                dplyr::where(~is.numeric(.x))), na.rm=FALSE)) %>%
+            dplyr::ungroup() %>%
+            dplyr::select(pathway, min, max, median) %>%
+            dplyr::mutate(FDR = stats::p.adjust(median, method=p_adjust)) %>%
+            dplyr::rename_with(~paste0(dat,.), c(min,max,median))
+
+        } else if(dat %in% c("k_","k/K_")){
+          df_fill <- replace(df_temp, is.na(df_temp),  0)
+          if(dat=="k/K_"){results[["k/K_iterations"]] <- df_fill}
+          #Calculate stats
+          results_med <- df_fill %>%
+            dplyr::rowwise() %>%
+            dplyr::mutate(
+              #median
+              median = stats::median(dplyr::c_across(
+                dplyr::where(~is.numeric(.x))), na.rm=FALSE)) %>%
+            dplyr::ungroup() %>%
+            dplyr::select(pathway, median) %>%
+            dplyr::rename_with(~paste0(dat,.), c(median))
+        }
+        result_format <- dplyr::full_join(result_format,results_med,by="pathway")
+      } else if(dat == "K_"){
+        #Only 1 pathway size per pathway, does not change with iteration
+        results_med <- df_temp %>%
+          dplyr::mutate(K = coacross(-pathway)) %>%
+          dplyr::select(pathway, K)
+        result_format <- dplyr::full_join(result_format,results_med,by="pathway")
+      }
+    }
+  }
+
+  #Drop NA rows
+  result_format2 <- result_format %>%
+    tidyr::drop_na(FDR)
+
+  ###### Add gene lists is selected ######
+  if(print_genes){
+    df_genes <- base_df %>%
+      dplyr::select(pathway, dplyr::starts_with("genes")) %>%
+      dplyr::filter(pathway %in% result_format2$pathway) %>%
+      tidyr::pivot_longer(-pathway) %>%
+      dplyr::filter(value != "") %>%
+      dplyr::select(-name) %>%
+      tidyr::unnest(value) %>%
+      dplyr::group_by(pathway) %>%
+      dplyr::summarise(overlap_in_any_iteration = list(sort(unique(value))))
+
+    result_format2 <- dplyr::full_join(result_format2, df_genes, by="pathway")
+  }
+
+  results_df_summary <- result_format2 %>%
+    dplyr::mutate("group" = deparse(substitute(anno_df)), .before = pathway)
 
 
-  results <- list("summary" = results_df_summary, "p_iterations" = results_df2_p, "k/K_iterations" = results_df2_k)
+  results[["summary"]] <- results_df_summary
 
   return(results)
+}
+
+
+coacross <- function(...) {
+  dplyr::coalesce(!!!dplyr::across(...))
 }

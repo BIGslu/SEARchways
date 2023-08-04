@@ -96,7 +96,8 @@ iterateEnrich <- function(anno_df = NULL,
     #Use 2 less than total if not user defined
     processors.to.use <- parallel::detectCores()-2
     if(processors.to.use == 0){
-      stop("Error processors: Default resulted in 0. Please correct.")}
+      stop("Error processors: Default resulted in 0. Please correct.")
+    }
   } else {
     #Use user defined number
     processors.to.use <- ncores
@@ -104,7 +105,7 @@ iterateEnrich <- function(anno_df = NULL,
 
   cl <- parallel::makeCluster(processors.to.use)
 
-  ### get pathway names for base data frame ###
+  ###### get pathway names for base data frame ######
   if(!is.null(category)){
     db.format <- msigdbr::msigdbr(species, category)
     #Subset subcategory if selected
@@ -136,7 +137,7 @@ iterateEnrich <- function(anno_df = NULL,
   }
 
   base_df <- data.frame("pathway" = unique(db.format$gs_name))
-  ### iterate enrichment with individual annotations ###
+  ###### iterate enrichment with individual annotations ######
 
   parallel::clusterExport(cl, c("ensembl.human.db.pc", "ensembl.human.db.full", "ensembl.mouse.db.pc",
                                 "entrez.human.db.pc", "entrez.human.db.full", "entrez.mouse.db.pc",

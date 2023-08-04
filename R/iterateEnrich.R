@@ -72,7 +72,7 @@ iterateEnrich <- function(anno_df = NULL,
                           protein_coding = TRUE,
                           minOverlap = 1,
                           minGeneSetSize = 10,
-                          maxGeneSetSize = 10000,
+                          maxGeneSetSize = 1e10,
                           print_genes = FALSE,
                           ncores = 1){
   gs_cat <- gs_subcat <- pathway <- `k/K` <- pvalue <- genes <- max_pval <- median_kK <- median_pval <- min_pval <- NULL

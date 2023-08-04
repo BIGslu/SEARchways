@@ -191,29 +191,34 @@ iterateEnrich <- function(anno_df = NULL,
                        minGeneSetSize = minGeneSetSize,
                        maxGeneSetSize = maxGeneSetSize,
                        print_genes = print_genes)
-    if(print_genes == TRUE){
-      prof2<- prof %>%
-        dplyr::select(pathway, pvalue, `k/K`, genes) %>%
+
+    if(nrow(prof) > 0){
+      prof2 <- prof %>%
+        dplyr::select(pathway, pvalue, n_query_genes_in_pathway, n_pathway_genes, `k/K`) %>%
         dplyr::rename_with(~paste0("pvalue_", i),
                            "pvalue",
                            recycle0 = TRUE) %>%
+        dplyr::rename_with(~paste0("k_", i),
+                           "n_query_genes_in_pathway",
+                           recycle0 = TRUE) %>%
+        dplyr::rename_with(~paste0("K_", i),
+                           "n_pathway_genes",
+                           recycle0 = TRUE) %>%
         dplyr::rename_with(~paste0("k/K_", i),
                            "k/K",
-                           recycle0 = TRUE) %>%
-        dplyr::rename_with(~paste0("genes_", i),
-                           "genes",
                            recycle0 = TRUE)
 
-    } else{
-      prof2<- prof %>%
-        dplyr::select(pathway, pvalue, `k/K`) %>%
-        dplyr::rename_with(~paste0("pvalue_", i),
-                           "pvalue",
-                           recycle0 = TRUE) %>%
-        dplyr::rename_with(~paste0("k/K_", i),
-                           "k/K",
-                           recycle0 = TRUE)
-    }
+      #Add genes if selected
+      if(print_genes){
+        genes.temp <- prof %>%
+          dplyr::select(pathway, "genes") %>%
+          dplyr::rename_with(~paste0("genes_", i),
+                             "genes",
+                             recycle0 = TRUE)
+
+        prof2 <- dplyr::inner_join(prof2, genes.temp, by="pathway")
+      }
+    } else { prof2 <- NULL}
 
     iter_list <- prof2
 

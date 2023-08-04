@@ -81,6 +81,9 @@ iterateEnrich <- function(anno_df = NULL,
   if(minOverlap > 1) {
     stop("Sorry, at this time iterative p-values can only be generated for a minOverlap of 1.")
   }
+  #Set colnames if not provided
+  if(is.null(anno_featCol)) { anno_featCol <- colnames(anno_df[1])}
+  if(is.null(anno_annotationCol)) { anno_annotationCol <- colnames(anno_df[2])}
 
   ###### Parallel ######
   #setup parallel processors

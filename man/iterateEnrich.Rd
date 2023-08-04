@@ -9,7 +9,7 @@ iterateEnrich(
   anno_featCol = NULL,
   anno_annotationCol = NULL,
   niter = 100,
-  p.adjust.method = "fdr",
+  p_adjust = "fdr",
   ID = "SYMBOL",
   species = "human",
   category = NULL,
@@ -19,35 +19,53 @@ iterateEnrich(
   protein_coding = TRUE,
   minOverlap = 1,
   minGeneSetSize = 10,
-  maxGeneSetSize = 10000,
-  print_genes = TRUE,
+  maxGeneSetSize = 1e+10,
+  print_genes = FALSE,
   ncores = 1
 )
 }
 \arguments{
-\item{anno_df}{A data frame containing features and corresponding gene IDs to subject to iterative hypergeometric enrichment}
+\item{anno_df}{Data frame containing features (such as methylation probes, SNP IDs, ATAC-seq peaks) and corresponding gene IDs for those features. Features with multiple annotations (ie rows) are iteratively sampled to 1 annotation per feature for enrichment}
 
-\item{anno_featCol}{A string with the name of the column containing the feature IDs}
+\item{anno_featCol}{Character string. Name of the column containing the feature IDs (e.g. methylation probes, SNP IDs, ATAC-seq peaks). Default is the first column of anno_df}
 
-\item{anno_annotationCol}{A string with the name of the column containing the gene IDs}
+\item{anno_annotationCol}{Character string. Name of the column containing the gene IDs (e.g. HGNC symbols, Entrez IDs, Ensembl IDs). Default is the second column of anno_df}
 
-\item{niter}{Number of iterations. Default is 100.}
+\item{niter}{Integer. Number of iterations. Default is 100.}
 
-\item{p.adjust.method}{Method for p-value adjustment from p.adjust.methods(). Default is "fdr"}
+\item{p_adjust}{Character string. Method for p-value adjustment from p.adjust.methods(). Default is "fdr"}
 
-\item{ID}{Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"}
+\item{ID}{Character string. Type of gene annotation used in anno_df. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"}
 
 \item{species}{Character string denoting species of interest. "human" or "mouse." Default is "human"}
 
 \item{category}{Character string denoting Broad gene set database}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database}
+\item{subcategory}{Character string denoting Broad gene set sub-database
+\tabular{rrrrr}{
+\strong{category} \tab    \strong{subcategory}\cr
+C1  \tab      \cr
+C2  \tab      CGP\cr
+C2  \tab      CP\cr
+C2  \tab      CP:BIOCARTA\cr
+C2  \tab      CP:KEGG\cr
+C2  \tab      CP:PID\cr
+C2  \tab      CP:REACTOME\cr
+C2  \tab      CP:WIKIPATHWAYS\cr
+C3  \tab      \cr
+C5  \tab      GO:BP\cr
+C5  \tab      GO:CC\cr
+C5  \tab      GO:MF\cr
+C5  \tab      HPO\cr
+C6  \tab      \cr
+H   \tab      \cr
+}}
 
-\item{db}{Custom database}
+\item{db}{If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your anno_df annotations)}
 
 \item{custom_bg}{Custom background. Formatted as a vector of gene IDs.}
 
-\item{protein_coding}{TRUE or FALSE: do you want to limit the background to only protein-coding genes? Default is TRUE}
+\item{protein_coding}{Logical. Do you want to limit the background to only protein-coding genes? Default is TRUE}
 
 \item{minOverlap}{Minimum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 1. For the iterative function, the only valid value is 1 at the moment.}
 
@@ -55,20 +73,27 @@ iterateEnrich(
 
 \item{maxGeneSetSize}{Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10}
 
-\item{print_genes}{TRUE or FALSE. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is TRUE. Leaving this parameter as TRUE will make the function run slowly for very large datasets.}
+\item{print_genes}{Logical. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is FALSE. Setting this parameter as TRUE will make the function run slowly for very large datasets.}
 
 \item{ncores}{Number of cores for parallel processing. Default is 1}
 }
 \value{
-List of data frames with length = number of gene sets: p-values for each iteration, k/K values for each iteration, summary with median p-values, k/K values, and adjusted p-values.
+List of data frames including
+\itemize{
+\item summary: median and min/max p-values, median k/K values and adjusted p-values. Note that medians treat iterations with no overlap in a gene set as p-value = 1 and k/K = 0
+\item p_iterations: p-values for each iteration,
+\item k/K_iterations:  k/K values for each iteration
+}
 }
 \description{
 Iteratively run flexEnrich on a list of features containing multiple annotations. Will select a random annotation for a given feature and run enrichment n times. Returns p-values and k/K ratios for each iteration, as well as a summative data frame with median p-values, median k/K ratios, and FDR-correction of the median p-values.
 }
 \examples{
-df <- data.frame("annotation" = names(example.gene.list[[1]]), "feat" = c(1:400))
+df <- data.frame(feat = paste0("probe", rep(1:25, 4)),
+                 annotation = names(example.gene.list[[1]]))
 
-iterateEnrich(anno_df = df, anno_featCol = "feat",
+temp=iterateEnrich(anno_df = df,
+              anno_featCol = "feat",
               anno_annotationCol = "annotation",
               niter = 5, ID = "ENSEMBL", category = "H")
 }

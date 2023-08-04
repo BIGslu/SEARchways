@@ -16,7 +16,7 @@ flexEnrich(
   protein_coding = TRUE,
   minOverlap = 1,
   minGeneSetSize = 10,
-  maxGeneSetSize = NULL,
+  maxGeneSetSize = 1e+10,
   print_genes = TRUE
 )
 }

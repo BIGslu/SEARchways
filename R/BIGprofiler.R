@@ -171,6 +171,15 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
                       pval, FDR, qvalue, genes) %>%
         dplyr::arrange(FDR)
 
+      # add GO term reference ID to results
+      if(category == "C5"){
+        result.clean <- result.clean %>%
+          left_join(select(db.format, c(gs_name, gs_exact_source)), by = c("pathway" = "gs_name")) %>%
+          mutate(pathway_ID = gs_exact_source, .after = pathway) %>%
+          select(-gs_exact_source)
+      }
+
+
       #Run enrich and save to results list
       all.results[[g]] <- result.clean
     }}

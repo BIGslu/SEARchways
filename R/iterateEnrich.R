@@ -121,16 +121,16 @@ iterateEnrich <- function(anno_df = NULL,
   iter_list <- foreach::foreach(i = 1:niter,
                                 .packages = c("dplyr", "doParallel","msigdbr","stats","tibble", "foreach"),
                                 .export = c("flexEnrich"), .noexport = c("ensembl.human.db.pc",
-                                                                         "ensembl.human.db.full",
-                                                                         "ensembl.mouse.db.pc",
+                                                                          "ensembl.human.db.full",
+                                                                          "ensembl.mouse.db.pc",
 
-                                                                         "entrez.human.db.pc",
-                                                                         "entrez.human.db.full",
-                                                                         "entrez.mouse.db.pc",
+                                                                          "entrez.human.db.pc",
+                                                                          "entrez.human.db.full",
+                                                                          "entrez.mouse.db.pc",
 
-                                                                         "symbol.human.db.pc",
-                                                                         "symbol.human.db.full",
-                                                                         "symbol.mouse.db.pc")
+                                                                          "symbol.human.db.pc",
+                                                                          "symbol.human.db.full",
+                                                                          "symbol.mouse.db.pc")
 
   ) %dopar% {
 
@@ -153,17 +153,17 @@ iterateEnrich <- function(anno_df = NULL,
 
     ### run enrichemt on reduced gene list ###
     prof <- flexEnrich(gene_list = gl,
-                       ID = ID,
-                       species = species,
-                       category = category,
-                       subcategory = subcategory,
-                       db = db,
-                       custom_bg = custom_bg,
-                       protein_coding = protein_coding,
-                       minOverlap = minOverlap,
-                       minGeneSetSize = minGeneSetSize,
-                       maxGeneSetSize = maxGeneSetSize,
-                       print_genes = print_genes)
+                        ID = ID,
+                        species = species,
+                        category = category,
+                        subcategory = subcategory,
+                        db = db,
+                        custom_bg = custom_bg,
+                        protein_coding = protein_coding,
+                        minOverlap = minOverlap,
+                        minGeneSetSize = minGeneSetSize,
+                        maxGeneSetSize = maxGeneSetSize,
+                        print_genes = print_genes)
     if(print_genes == TRUE){
       prof2<- prof %>%
         dplyr::select(pathway, pvalue, `k/K`, genes) %>%
@@ -216,18 +216,26 @@ iterateEnrich <- function(anno_df = NULL,
       dplyr::select(pathway, dplyr::starts_with("genes")) %>%
       dplyr::filter(pathway %in% df_p$pathway)
 
-    results_vec_genes <- rep(NA, nrow(df_genes))
+    #results_vec_genes <- rep(NA, nrow(df_genes))
+    results_list_genes <- list()
+
     for(i in 1:nrow(df_genes)){
+      # i = 1
       genes_in_row <- c()
-      for(j in 2:ncol(df_genes)){
-        if(!is.na(df_genes[i,j])){
-          el <- stringr::str_split_1(df_genes[i,j], ";")
-        } else{
-          el <- NA
-        }
-        genes_in_row <- unique(c(genes_in_row, el))
-      }
-      results_vec_genes[i] <- paste0(genes_in_row, collapse = ";")
+      glist_temp <- unlist(df_genes[i, 2:ncol(df_genes)])
+      genes_in_row <- unique(glist_temp)
+      # for(j in 2:ncol(df_genes)){
+      #   #j = 2
+      #   if(!is.na(unlist(glist_temp[[j]])[1])){
+      #     glist_temp2 <- unlist(glist_temp[[j]])
+      #     el <- glist_temp2
+      #   } else{
+      #     el <- NA
+      #   }
+      #   genes_in_row <- c(genes_in_row, el)
+      #   genes_in_row <- unique(genes_in_row)
+      # }
+      results_list_genes[[i]] <- genes_in_row
     }
   }
 
@@ -267,7 +275,13 @@ iterateEnrich <- function(anno_df = NULL,
 
   if(print_genes == TRUE){
     results_df_summary <- results_df_summary %>%
-      dplyr::mutate(overlap_in_any_iteration = results_vec_genes)
+      dplyr::mutate(overlap_in_any_iteration = results_list_genes)
+  }
+  if(category == "C5"){
+    results_df_summary <- results_df_summary %>%
+      left_join(select(db.format, c(gs_name, gs_exact_source)), by = c("pathway" = "gs_name")) %>%
+      mutate(pathway_ID = gs_exact_source, .after = pathway) %>%
+      select(-gs_exact_source)
   }
 
 

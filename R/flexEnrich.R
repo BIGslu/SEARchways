@@ -224,7 +224,7 @@ flexEnrich <- function(gene_list = NULL,
     overlaps <- c()
     set_names <- c()
     kK_ratios <- c()
-    genes_in_overlap <- c()
+    genes_in_overlap <- list()
 
     # Loop through gene sets
     for(s in unique(db.format2$gs_name)){
@@ -233,13 +233,13 @@ flexEnrich <- function(gene_list = NULL,
       query_in_set <- length(unique(base::intersect(set, query)))
       kK_ratio <- query_in_set/set_size
       if(print_genes == TRUE){
-        query_genes_in_set <- paste0(unique(base::intersect(set, query)), collapse = ";")
+        query_genes_in_set <- unique(base::intersect(set, query))
       }
 
       ## print progress ##
       i <- which(unique(db.format2$gs_name) == s)
       if(i/1000 == round(i/1000)){
-        print(paste0("Iteration ", i, " out of ", length(unique(db.format2$gs_name))))
+        print(paste0(i, " out of ", length(unique(db.format2$gs_name)), "gene sets complete"))
       }
 
       set_sizes <- c(set_sizes, set_size)
@@ -249,10 +249,10 @@ flexEnrich <- function(gene_list = NULL,
 
       if(print_genes == TRUE) {
         if(!is.null(query_genes_in_set)){
-          genes_in_overlap <- c(genes_in_overlap, query_genes_in_set)
+          genes_in_overlap[[i]] <- query_genes_in_set
 
         } else{
-          genes_in_overlap <- c(genes_in_overlap, NA)
+          genes_in_overlap[[i]] <- NA
         }
       }
 
@@ -293,6 +293,13 @@ flexEnrich <- function(gene_list = NULL,
     res.temp$FDR <- stats::p.adjust(res.temp$pvalue, method = "fdr")
     res.temp <- res.temp %>%
       dplyr::relocate(FDR, .after = pvalue)
+
+    if(category == "C5"){
+      res.temp <- res.temp %>%
+        left_join(select(db.format, c(gs_name, gs_exact_source)), by = c("pathway" = "gs_name")) %>%
+        mutate(pathway_ID = gs_exact_source, .after = pathway) %>%
+        select(-gs_exact_source)
+    }
 
     all.results[[g]] <- res.temp
   }

@@ -287,11 +287,10 @@ flexEnrich <- function(gene_list = NULL,
     res.temp <- res.temp %>%
       dplyr::relocate(FDR, .after = pvalue)
 
-    if(category == "C5"){
+    if(is.null(db) && category == "C5"){
       res.temp <- res.temp %>%
-        left_join(select(db.format, c(gs_name, gs_exact_source)), by = c("pathway" = "gs_name")) %>%
-        mutate(pathway_ID = gs_exact_source, .after = pathway) %>%
-        select(-gs_exact_source)
+        dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
+        dplyr::rename(gs_exact_source = "pathway_ID", .after = pathway)
     }
 
     all.results[[g]] <- res.temp

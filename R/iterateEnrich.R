@@ -317,11 +317,10 @@ iterateEnrich <- function(anno_df = NULL,
     dplyr::mutate("group" = deparse(substitute(anno_df)), .before = pathway)
 
 
-  if(category == "C5"){
+  if(is.null(db) && category == "C5"){
     results_df_summary <- results_df_summary %>%
-      left_join(select(db.format, c(gs_name, gs_exact_source)), by = c("pathway" = "gs_name")) %>%
-      mutate(pathway_ID = gs_exact_source, .after = pathway) %>%
-      select(-gs_exact_source)
+      dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
+      dplyr::rename(gs_exact_source = "pathway_ID", .after = pathway)
   }
 
   results[["summary"]] <- results_df_summary

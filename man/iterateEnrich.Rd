@@ -92,7 +92,7 @@ Iteratively run flexEnrich on a list of features containing multiple annotations
 df <- data.frame(feat = paste0("probe", rep(1:25, 4)),
                  annotation = names(example.gene.list[[1]]))
 
-temp=iterateEnrich(anno_df = df,
+iterateEnrich(anno_df = df,
               anno_featCol = "feat",
               anno_annotationCol = "annotation",
               niter = 5, ID = "ENSEMBL", category = "H")

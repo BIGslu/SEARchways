@@ -159,11 +159,10 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
       dplyr::mutate(group=g, gs_cat=category, gs_subcat=subcategory, .before=1)
 
     # add GO term reference ID to results
-    if(category == "C5"){
+    if(is.null(db) && category == "C5"){
       fg.result <- fg.result %>%
-        left_join(select(db.format, c(gs_name, gs_exact_source)), by = c("pathway" = "gs_name")) %>%
-        mutate(pathway_ID = gs_exact_source, .after = pathway) %>%
-        select(-gs_exact_source)
+        dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
+        dplyr::rename(gs_exact_source = "pathway_ID", .after = pathway)
     }
 
 

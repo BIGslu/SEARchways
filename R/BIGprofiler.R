@@ -172,11 +172,10 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
         dplyr::arrange(FDR)
 
       # add GO term reference ID to results
-      if(category == "C5"){
+      if(is.null(db) && category == "C5"){
         result.clean <- result.clean %>%
-          left_join(select(db.format, c(gs_name, gs_exact_source)), by = c("pathway" = "gs_name")) %>%
-          mutate(pathway_ID = gs_exact_source, .after = pathway) %>%
-          select(-gs_exact_source)
+          dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
+          dplyr::rename(gs_exact_source = "pathway_ID", .after = pathway)
       }
 
 

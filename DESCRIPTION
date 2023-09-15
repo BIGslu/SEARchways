@@ -1,6 +1,6 @@
 Package: SEARchways
-Title: One place for GSEA, enrichr and clusterprofiler
-Version: 1.2.0
+Title: One place for GSEA and functional enrichment
+Version: 1.3.0
 Authors@R: person("Basilin", "Benson",email ="basilinb@uw.edu", role = c("aut", "cre"))
 Description: Run Enchinchment analysis using enrichr, GSEA and clusterprofiler.
 License: GPL (>= 3)
@@ -8,21 +8,17 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
-    biomaRt,
     dplyr,
     magrittr,
-    enrichR (>= 3.0),
-    httr,
     tidyr,
     msigdbr,
     tibble,
     fgsea,
     clusterProfiler,
     foreach,
-    doParallel,
-    stringr
+    doParallel
 biocViews:
-Remotes: wjawaid/enrichR, BIGslu/BIGpicture
+Remotes: BIGslu/BIGpicture
 Suggests: BIGpicture
 Depends: 
     R (>= 4.1)

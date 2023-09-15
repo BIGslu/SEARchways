@@ -36,15 +36,10 @@ flexEnrich <- function(gene_list = NULL,
                        protein_coding = TRUE,
                        minOverlap = 1,
                        minGeneSetSize = 10,
-                       maxGeneSetSize = NULL,
+                       maxGeneSetSize = 1e10,
                        print_genes = TRUE){
 
   FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_cat <- gs_subcat <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- NULL
-
-  ### set max gene set size to impossibly large if not specified ###
-  if(is.null(maxGeneSetSize)){
-    maxGeneSetSize <- 1e10
-  }
 
   ##### Database #####
   #Load gene ontology
@@ -94,9 +89,7 @@ flexEnrich <- function(gene_list = NULL,
       dplyr::pull(gs_name)
     db.format <- db.format %>%
       dplyr::filter(gs_name %in% good_pw)
-  }
-
-  else {
+  } else {
     stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
   }
 
@@ -143,11 +136,10 @@ flexEnrich <- function(gene_list = NULL,
       stop("None of your input gene IDs are present in your background. Are you sure you used the same ID format?")
     }
     else{bg <- unique(custom_bg)}
-  }
-  else{
+  } else{
     if(!species %in% c("mouse","human")){
       stop("Please enter either 'human' or 'mouse' for species.")
-    } else{
+    } else {
       if(ID == "SYMBOL"){
         if(protein_coding == TRUE){
           if(species == "human"){
@@ -232,8 +224,9 @@ flexEnrich <- function(gene_list = NULL,
       set_size = length(unique(set))
       query_in_set <- length(unique(base::intersect(set, query)))
       kK_ratio <- query_in_set/set_size
-      if(print_genes == TRUE){
+      if(print_genes){
         query_genes_in_set <- unique(base::intersect(set, query))
+        query_genes_in_set <- list(sort(unique(base::intersect(set, query))))
       }
 
       ## print progress ##
@@ -247,7 +240,7 @@ flexEnrich <- function(gene_list = NULL,
       set_names <- c(set_names, s)
       kK_ratios <- c(kK_ratios, kK_ratio)
 
-      if(print_genes == TRUE) {
+      if(print_genes) {
         if(!is.null(query_genes_in_set)){
           genes_in_overlap[[i]] <- query_genes_in_set
 
@@ -278,15 +271,15 @@ flexEnrich <- function(gene_list = NULL,
                                "pvalue" = pvals #,
                                #     "genes" = genes_in_overlap
     )
-    if(print_genes == TRUE){
+    if(print_genes){
       res.temp$genes <- genes_in_overlap
     }
 
 
     res.temp <- res.temp %>%
-      dplyr::filter(n_pathway_genes > minGeneSetSize,
-                    n_pathway_genes < maxGeneSetSize,
-                    n_query_genes_in_pathway > minOverlap,
+      dplyr::filter(n_pathway_genes >= minGeneSetSize,
+                    n_pathway_genes <= maxGeneSetSize,
+                    n_query_genes_in_pathway >= minOverlap,
                     !is.na(pvalue))
 
 

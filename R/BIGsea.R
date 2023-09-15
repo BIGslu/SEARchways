@@ -51,7 +51,7 @@
 BIGsea <- function(gene_list = NULL, gene_df = NULL,
                    nperm=1000, species="human", ID="SYMBOL",
                    category = NULL, subcategory = NULL, db = NULL){
-  ensembl_gene <- entrez_gene <- gene_symbol <- group <- gs_name <- gs_subcat <- padj <- pathway <- col1 <- NULL
+  pathway_ID <- gs_exact_source <- ensembl_gene <- entrez_gene <- gene_symbol <- group <- gs_name <- gs_subcat <- padj <- pathway <- col1 <- NULL
   #Blank list to hold results
   all.results <- list()
 
@@ -159,10 +159,13 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
       dplyr::mutate(group=g, gs_cat=category, gs_subcat=subcategory, .before=1)
 
     # add GO term reference ID to results
-    if(is.null(db) && category == "C5"){
-      fg.result <- fg.result %>%
-        dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
-        dplyr::rename(gs_exact_source = "pathway_ID", .after = pathway)
+    if(!is.null(category)){
+      if(category == "C5"){
+        fg.result <- fg.result %>%
+          dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
+          dplyr::rename(pathway_ID = gs_exact_source) %>%
+          dplyr::relocate(pathway_ID, .after = pathway)
+      }
     }
 
 

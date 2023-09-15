@@ -75,7 +75,7 @@ iterateEnrich <- function(anno_df = NULL,
                           maxGeneSetSize = 1e10,
                           print_genes = FALSE,
                           ncores = 1){
-  gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
+  gs_exact_source <- pathway_ID <- gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
 
   #Set colnames if not provided
   if(is.null(anno_featCol)) { anno_featCol <- colnames(anno_df[1])}
@@ -317,10 +317,13 @@ iterateEnrich <- function(anno_df = NULL,
     dplyr::mutate("group" = deparse(substitute(anno_df)), .before = pathway)
 
 
-  if(is.null(db) && category == "C5"){
-    results_df_summary <- results_df_summary %>%
-      dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
-      dplyr::rename(gs_exact_source = "pathway_ID", .after = pathway)
+  if(!is.null(category)){
+    if(category == "C5"){
+      results_df_summary <- results_df_summary %>%
+        dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
+        dplyr::rename(pathway_ID = gs_exact_source) %>%
+        dplyr::relocate(pathway_ID, .after = pathway)
+    }
   }
 
   results[["summary"]] <- results_df_summary

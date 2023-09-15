@@ -51,7 +51,7 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
                         species = "human",
                         category = NULL, subcategory = NULL,
                         db = NULL){
-  BgRatio <- Description <- FDR <- GeneRatio <- ensembl_gene <- entrez_gene <- geneID <- gene_symbol <- genes <- group <- group_in_cat.subcat <- group_in_pathway <- gs_cat <- gs_name <- gs_subcat <- `k/K` <- p.adjust <- pathway <- pval <- pvalue <- qvalue <- size_cat.subcat <- size_group <- size_pathway <- NULL
+  pathway_ID <- gs_exact_source <- BgRatio <- Description <- FDR <- GeneRatio <- ensembl_gene <- entrez_gene <- geneID <- gene_symbol <- genes <- group <- group_in_cat.subcat <- group_in_pathway <- gs_cat <- gs_name <- gs_subcat <- `k/K` <- p.adjust <- pathway <- pval <- pvalue <- qvalue <- size_cat.subcat <- size_group <- size_pathway <- NULL
 
   ##### Database #####
   #Load gene ontology
@@ -172,10 +172,13 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
         dplyr::arrange(FDR)
 
       # add GO term reference ID to results
-      if(is.null(db) && category == "C5"){
-        result.clean <- result.clean %>%
-          dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
-          dplyr::rename(gs_exact_source = "pathway_ID", .after = pathway)
+      if(!is.null(category)){
+        if(category == "C5"){
+          result.clean <- result.clean %>%
+            dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
+            dplyr::rename(pathway_ID = gs_exact_source) %>%
+            dplyr::relocate(pathway_ID, .after = pathway)
+        }
       }
 
 

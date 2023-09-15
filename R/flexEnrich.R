@@ -39,7 +39,7 @@ flexEnrich <- function(gene_list = NULL,
                        maxGeneSetSize = 1e10,
                        print_genes = TRUE){
 
-  FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_cat <- gs_subcat <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- NULL
+  pathway_ID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_cat <- gs_subcat <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- NULL
 
   ##### Database #####
   #Load gene ontology
@@ -287,10 +287,13 @@ flexEnrich <- function(gene_list = NULL,
     res.temp <- res.temp %>%
       dplyr::relocate(FDR, .after = pvalue)
 
-    if(is.null(db) && category == "C5"){
-      res.temp <- res.temp %>%
-        dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
-        dplyr::rename(gs_exact_source = "pathway_ID", .after = pathway)
+    if(!is.null(category)){
+      if(category == "C5"){
+        res.temp <- res.temp %>%
+          dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
+          dplyr::rename(pathway_ID = gs_exact_source) %>%
+          dplyr::relocate(pathway_ID, .after = pathway)
+      }
     }
 
     all.results[[g]] <- res.temp

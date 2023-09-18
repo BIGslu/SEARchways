@@ -40,8 +40,8 @@
 #' @param ncores Number of cores for parallel processing. Default is 1
 #' @author Madison Cox
 #'
-#' @return List of data frames including
-#'    - summary: median and min/max p-values, median k/K values and adjusted p-values. Note that medians treat iterations with no overlap in a gene set as p-value = 1 and k/K = 0
+#' @return List of data frames includings
+#'    - summary: median and min/max p-values, median k/K values and adjusted p-values. Note that medians treat iterations with no overlap in a gene set as p-value = 1 and k/K = 0. Gene lists reflect overlap between gene set and any annotation of a given feature in the input.
 #'    - p_iterations: p-values for each iteration,
 #'    - k/K_iterations:  k/K values for each iteration
 #'
@@ -73,9 +73,9 @@ iterateEnrich <- function(anno_df = NULL,
                           minOverlap = 1,
                           minGeneSetSize = 10,
                           maxGeneSetSize = 1e10,
-                          print_genes = FALSE,
+                          print_genes = TRUE,
                           ncores = 1){
-  gs_exact_source <- pathway_ID <- gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
+  db_format <- gs_name <- gs_exact_source <- pathway_ID <- gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
 
   #Set colnames if not provided
   if(is.null(anno_featCol)) { anno_featCol <- colnames(anno_df[1])}
@@ -173,7 +173,7 @@ iterateEnrich <- function(anno_df = NULL,
 
     gl[["genes"]] <- gv
 
-    ### run enrichemt on reduced gene list ###
+    ### run enrichment on reduced gene list ###
     prof <- flexEnrich(gene_list = gl,
                        ID = ID,
                        species = species,
@@ -185,7 +185,7 @@ iterateEnrich <- function(anno_df = NULL,
                        minOverlap = minOverlap,
                        minGeneSetSize = minGeneSetSize,
                        maxGeneSetSize = maxGeneSetSize,
-                       print_genes = print_genes)
+                       print_genes = FALSE)
 
     if(nrow(prof) > 0){
       prof2 <- prof %>%
@@ -204,15 +204,15 @@ iterateEnrich <- function(anno_df = NULL,
                            recycle0 = TRUE)
 
       #Add genes if selected
-      if(print_genes){
-        genes.temp <- prof %>%
-          dplyr::select(pathway, "genes") %>%
-          dplyr::rename_with(~paste0("genes_", i),
-                             "genes",
-                             recycle0 = TRUE)
-
-        prof2 <- dplyr::inner_join(prof2, genes.temp, by="pathway")
-      }
+      # if(print_genes){
+      #   genes.temp <- prof %>%
+      #     dplyr::select(pathway, "genes") %>%
+      #     dplyr::rename_with(~paste0("genes_", i),
+      #                        "genes",
+      #                        recycle0 = TRUE)
+      #
+      #   prof2 <- dplyr::inner_join(prof2, genes.temp, by="pathway")
+      # }
     } else { prof2 <- NULL}
 
     iter_list <- prof2
@@ -299,19 +299,19 @@ iterateEnrich <- function(anno_df = NULL,
     tidyr::drop_na(FDR)
 
   ###### Add gene lists is selected ######
-  if(print_genes){
-    df_genes <- base_df %>%
-      dplyr::select(pathway, dplyr::starts_with("genes")) %>%
-      dplyr::filter(pathway %in% result_format2$pathway) %>%
-      tidyr::pivot_longer(-pathway) %>%
-      dplyr::filter(value != "") %>%
-      dplyr::select(-name) %>%
-      tidyr::unnest(value) %>%
-      dplyr::group_by(pathway) %>%
-      dplyr::summarise(overlap_in_any_iteration = list(sort(unique(value))))
-
-    result_format2 <- dplyr::full_join(result_format2, df_genes, by="pathway")
-  }
+  # if(print_genes){
+  #   df_genes <- base_df %>%
+  #     dplyr::select(pathway, dplyr::starts_with("genes")) %>%
+  #     dplyr::filter(pathway %in% result_format2$pathway) %>%
+  #     tidyr::pivot_longer(-pathway) %>%
+  #     dplyr::filter(value != "") %>%
+  #     dplyr::select(-name) %>%
+  #     tidyr::unnest(value) %>%
+  #     dplyr::group_by(pathway) %>%
+  #     dplyr::summarise(overlap_in_any_iteration = list(sort(unique(value))))
+  #
+  #   result_format2 <- dplyr::full_join(result_format2, df_genes, by="pathway")
+  # }
 
   results_df_summary <- result_format2 %>%
     dplyr::mutate("group" = deparse(substitute(anno_df)), .before = pathway)
@@ -325,6 +325,29 @@ iterateEnrich <- function(anno_df = NULL,
         dplyr::relocate(pathway_ID, .after = pathway)
     }
   }
+
+  ###### Add gene lists if selected ######
+  if(print_genes){
+    genes_overlap <- list()
+    for(i in unique(results_df_summary$pathway)){
+      input_genes <- unique(unlist(anno_df[,anno_annotationCol]))
+      db_temp <- db.format[which(db.format$gs_name == i),]
+      if(ID == "SYMBOL"){
+        db_temp$gene <- db_temp$gene_symbol
+      } else if(ID == "ENSEMBL"){
+        db_temp$gene <- db_temp$ensembl_gene
+      } else {
+        db_temp$gene <- db_temp$entrez_gene
+      }
+      gs_overlap <- unique(base::intersect(db_temp$gene, input_genes))
+      genes_overlap[[i]] <- gs_overlap
+    }
+    genes_overlap_df <- dplyr::tibble("pathway" = unique(results_df_summary$pathway),
+                                      "genes" = genes_overlap)
+    results_df_summary <- results_df_summary %>%
+      dplyr::left_join(genes_overlap_df)
+  }
+
 
   results[["summary"]] <- results_df_summary
 

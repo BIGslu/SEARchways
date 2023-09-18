@@ -20,7 +20,7 @@ iterateEnrich(
   minOverlap = 1,
   minGeneSetSize = 10,
   maxGeneSetSize = 1e+10,
-  print_genes = FALSE,
+  print_genes = TRUE,
   ncores = 1
 )
 }
@@ -78,9 +78,9 @@ H   \tab      \cr
 \item{ncores}{Number of cores for parallel processing. Default is 1}
 }
 \value{
-List of data frames including
+List of data frames includings
 \itemize{
-\item summary: median and min/max p-values, median k/K values and adjusted p-values. Note that medians treat iterations with no overlap in a gene set as p-value = 1 and k/K = 0
+\item summary: median and min/max p-values, median k/K values and adjusted p-values. Note that medians treat iterations with no overlap in a gene set as p-value = 1 and k/K = 0. Gene lists reflect overlap between gene set and any annotation of a given feature in the input.
 \item p_iterations: p-values for each iteration,
 \item k/K_iterations:  k/K values for each iteration
 }

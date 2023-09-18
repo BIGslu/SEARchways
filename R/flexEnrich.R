@@ -225,14 +225,14 @@ flexEnrich <- function(gene_list = NULL,
       query_in_set <- length(unique(base::intersect(set, query)))
       kK_ratio <- query_in_set/set_size
       if(print_genes){
-        query_genes_in_set <- unique(base::intersect(set, query))
-        query_genes_in_set <- list(sort(unique(base::intersect(set, query))))
+        query_genes_in_set <- sort(unique(base::intersect(set, query)))
+        #query_genes_in_set <- list(sort(unique(base::intersect(set, query))))
       }
 
       ## print progress ##
       i <- which(unique(db.format2$gs_name) == s)
       if(i/1000 == round(i/1000)){
-        print(paste0(i, " out of ", length(unique(db.format2$gs_name)), "gene sets complete"))
+        print(paste0(i, " out of ", length(unique(db.format2$gs_name)), " gene sets complete"))
       }
 
       set_sizes <- c(set_sizes, set_size)

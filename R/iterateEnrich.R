@@ -50,13 +50,15 @@
 #' @export
 #'
 #' @examples
-#' df <- data.frame(feat = paste0("probe", rep(1:25, 4)),
-#'                  annotation = names(example.gene.list[[1]]))
+#' # Each probe annoatated to multiple genes and each annotated to multiple probes
+#' set.seed(42)
+#' anno <- sample(names(example.gene.list[[1]])[1:20],size = 100, replace = TRUE)
+#' df <- data.frame(feat = paste0("probe", rep(1:25, 4)), annotation = anno)
 #'
 #' iterateEnrich(anno_df = df,
 #'               anno_featCol = "feat",
 #'               anno_annotationCol = "annotation",
-#'               niter = 5, ID = "ENSEMBL", category = "H")
+#'               niter = 3, ID = "ENSEMBL", category = "C5")
 
 iterateEnrich <- function(anno_df = NULL,
                           anno_featCol = NULL,

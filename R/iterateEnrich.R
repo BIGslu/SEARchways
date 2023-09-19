@@ -230,8 +230,6 @@ iterateEnrich <- function(anno_df = NULL,
 
   for(i in 1:length(iter_list)){
     result_df <- as.data.frame(iter_list[[i]])
-    print(length(result_df$pathway))
-    print(length(unique(result_df$pathway)))
     if(nrow(result_df)>0){
       base_df <- base_df %>%
         dplyr::full_join(result_df, by = c("pathway" = "pathway"))

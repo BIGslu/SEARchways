@@ -1,7 +1,10 @@
 Package: SEARchways
 Title: One place for GSEA and functional enrichment
-Version: 1.3.0
-Authors@R: person("Basilin", "Benson",email ="basilinb@uw.edu", role = c("aut", "cre"))
+Version: 1.3.1
+Authors@R: 
+	c(person("Basilin", "Benson",email ="basilinb@uw.edu", role = c("aut", "cre")),
+	  person("Kim", "Dill-McFarland",email ="kadm@uw.edu", role = c("aut")),
+	  person("Madison", "Cox",email ="mscox@uw.edu", role = c("aut")))
 Description: Run Enchinchment analysis using enrichr, GSEA and clusterprofiler.
 License: GPL (>= 3)
 Encoding: UTF-8

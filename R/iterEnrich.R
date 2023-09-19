@@ -55,28 +55,29 @@
 #' anno <- sample(names(example.gene.list[[1]])[1:20],size = 100, replace = TRUE)
 #' df <- data.frame(feat = paste0("probe", rep(1:25, 4)), annotation = anno)
 #'
-#' iterateEnrich(anno_df = df,
-#'               anno_featCol = "feat",
-#'               anno_annotationCol = "annotation",
-#'               niter = 3, ID = "ENSEMBL", category = "C5")
+#' iterEnrich(anno_df = df,
+#'            anno_featCol = "feat",
+#'            anno_annotationCol = "annotation",
+#'            niter = 3, ID = "ENSEMBL",
+#'            category = "H")
 
-iterateEnrich <- function(anno_df = NULL,
-                          anno_featCol = NULL,
-                          anno_annotationCol = NULL,
-                          niter = 100,
-                          p_adjust = "fdr",
-                          ID = "SYMBOL",
-                          species = "human",
-                          category = NULL,
-                          subcategory = NULL,
-                          db = NULL,
-                          custom_bg = NULL,
-                          protein_coding = TRUE,
-                          minOverlap = 1,
-                          minGeneSetSize = 10,
-                          maxGeneSetSize = 1e10,
-                          print_genes = TRUE,
-                          ncores = 1){
+iterEnrich <- function(anno_df = NULL,
+                       anno_featCol = NULL,
+                       anno_annotationCol = NULL,
+                       niter = 100,
+                       p_adjust = "fdr",
+                       ID = "SYMBOL",
+                       species = "human",
+                       category = NULL,
+                       subcategory = NULL,
+                       db = NULL,
+                       custom_bg = NULL,
+                       protein_coding = TRUE,
+                       minOverlap = 1,
+                       minGeneSetSize = 10,
+                       maxGeneSetSize = 1e10,
+                       print_genes = TRUE,
+                       ncores = 1){
   db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
 
   #Set colnames if not provided
@@ -241,7 +242,7 @@ iterateEnrich <- function(anno_df = NULL,
   if(ncol(base_df)==1){ stop("No gene sets meet criteria. Consider increasing minOverlap or decreasing minGeneSetSize")
   }
 
-   ###### Calculate summary ######
+  ###### Calculate summary ######
   #If any enrichment has results
   if(any(!is.na(base_df[,grepl("pvalue",colnames(base_df))]))){
     result_format <- base_df %>% dplyr::select(pathway)

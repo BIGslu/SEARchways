@@ -75,7 +75,7 @@ iterateEnrich <- function(anno_df = NULL,
                           maxGeneSetSize = 1e10,
                           print_genes = TRUE,
                           ncores = 1){
-  db_format <- gs_name <- gs_exact_source <- pathway_ID <- gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
+  db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
 
   #Set colnames if not provided
   if(is.null(anno_featCol)) { anno_featCol <- colnames(anno_df[1])}
@@ -132,6 +132,11 @@ iterateEnrich <- function(anno_df = NULL,
     stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
   }
 
+  # get db for flexEnrich entry
+  if(is.null(db)){
+    db.enter <- NULL
+  } else {db.enter <- db.format}
+
   ###### iterate enrichment with individual annotations ######
 
   parallel::clusterExport(cl, c("ensembl.human.db.pc", "ensembl.human.db.full", "ensembl.mouse.db.pc",
@@ -179,7 +184,7 @@ iterateEnrich <- function(anno_df = NULL,
                        species = species,
                        category = category,
                        subcategory = subcategory,
-                       db = db,
+                       db = db.enter,
                        custom_bg = custom_bg,
                        protein_coding = protein_coding,
                        minOverlap = minOverlap,
@@ -213,7 +218,7 @@ iterateEnrich <- function(anno_df = NULL,
       #
       #   prof2 <- dplyr::inner_join(prof2, genes.temp, by="pathway")
       # }
-    } else { prof2 <- NULL}
+    } else {prof2 <- NULL}
 
     iter_list <- prof2
 
@@ -225,6 +230,8 @@ iterateEnrich <- function(anno_df = NULL,
 
   for(i in 1:length(iter_list)){
     result_df <- as.data.frame(iter_list[[i]])
+    print(length(result_df$pathway))
+    print(length(unique(result_df$pathway)))
     if(nrow(result_df)>0){
       base_df <- base_df %>%
         dplyr::full_join(result_df, by = c("pathway" = "pathway"))
@@ -319,10 +326,13 @@ iterateEnrich <- function(anno_df = NULL,
 
   if(!is.null(category)){
     if(category == "C5"){
+      db_join <- db.format %>%
+        dplyr::select(c("gs_name", "gs_exact_source")) %>%
+        dplyr::distinct()
       results_df_summary <- results_df_summary %>%
-        dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
-        dplyr::rename(pathway_ID = gs_exact_source) %>%
-        dplyr::relocate(pathway_ID, .after = pathway)
+        dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
+        dplyr::rename(pathway_GOID = gs_exact_source) %>%
+        dplyr::relocate(pathway_GOID, .after = pathway)
     }
   }
 

@@ -39,7 +39,7 @@ flexEnrich <- function(gene_list = NULL,
                        maxGeneSetSize = 1e10,
                        print_genes = TRUE){
 
-  pathway_ID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_cat <- gs_subcat <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- NULL
+  db_join <- pathway_GOID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_cat <- gs_subcat <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- NULL
 
   ##### Database #####
   #Load gene ontology
@@ -271,8 +271,12 @@ flexEnrich <- function(gene_list = NULL,
                                "pvalue" = pvals #,
                                #     "genes" = genes_in_overlap
     )
+
+
     if(print_genes){
-      res.temp$genes <- genes_in_overlap
+      names(genes_in_overlap) <- NULL
+      res.temp<- res.temp %>%
+        dplyr::mutate("genes" = genes_in_overlap)
     }
 
 
@@ -289,10 +293,13 @@ flexEnrich <- function(gene_list = NULL,
 
     if(!is.null(category)){
       if(category == "C5"){
+        db_join <- db.format %>%
+          dplyr::select(c("gs_name", "gs_exact_source")) %>%
+          dplyr::distinct()
         res.temp <- res.temp %>%
-          dplyr::left_join(dplyr::select(db.format, c("gs_name", "gs_exact_source")), by = c("pathway" = "gs_name")) %>%
-          dplyr::rename(pathway_ID = gs_exact_source) %>%
-          dplyr::relocate(pathway_ID, .after = pathway)
+          dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
+          dplyr::rename(pathway_GOID = gs_exact_source) %>%
+          dplyr::relocate(pathway_GOID, .after = pathway)
       }
     }
 

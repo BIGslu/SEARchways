@@ -24,9 +24,14 @@
 #'  C6  \tab      \cr
 #'  H   \tab      \cr
 #'  }
-#' @param db If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)
+#' @param db If not using Broad databases, a data frame with gene ontology
+#'   including gene set name (column 1: gs_name) and gene ID (column2:
+#'   gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)
+#' @param minGSSize minimal size of genes annotated for testing (minimal pathway size). Default \code{10}
+#' @param maxGSSize maximal size of genes annotated for testing (maximal pathway size). Default \code{500}. See [clusterProfiler::enricher()]
 #'
-#' @return Data frame of enrichments including pathway, significance, and genes in pathway
+#' @return Data frame of enrichments including pathway, significance, and genes
+#'   in pathway
 #' @export
 #'
 #' @examples
@@ -50,7 +55,9 @@
 BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
                         species = "human",
                         category = NULL, subcategory = NULL,
-                        db = NULL){
+                        db = NULL,
+                        minGSSize = 10,
+                        maxGSSize = 500){
   db_join <- pathway_GOID <- gs_exact_source <- BgRatio <- Description <- FDR <- GeneRatio <- ensembl_gene <- entrez_gene <- geneID <- gene_symbol <- genes <- group <- group_in_cat.subcat <- group_in_pathway <- gs_cat <- gs_name <- gs_subcat <- `k/K` <- p.adjust <- pathway <- pval <- pvalue <- qvalue <- size_cat.subcat <- size_group <- size_pathway <- NULL
 
   ##### Database #####
@@ -119,7 +126,9 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
     print(g)
     #run enrichment on gene list
     enrich.result <- clusterProfiler::enricher(gene=gene_list_format[[g]],
-                                               TERM2GENE=db.format2[,1:2])
+                                               TERM2GENE=db.format2[,1:2],
+                                               minGSSize = minGSSize,
+                                               maxGSSize = maxGSSize)
 
     #handle no enrichment results
     if(is.null(enrich.result)){

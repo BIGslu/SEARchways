@@ -11,7 +11,9 @@ BIGprofiler(
   species = "human",
   category = NULL,
   subcategory = NULL,
-  db = NULL
+  db = NULL,
+  minGSSize = 10,
+  maxGSSize = 500
 )
 }
 \arguments{
@@ -45,10 +47,17 @@ C6  \tab      \cr
 H   \tab      \cr
 }}
 
-\item{db}{If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
+\item{db}{If not using Broad databases, a data frame with gene ontology
+including gene set name (column 1: gs_name) and gene ID (column2:
+gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
+
+\item{minGSSize}{minimal size of genes annotated for testing (minimal pathway size). Default \code{10}}
+
+\item{maxGSSize}{maximal size of genes annotated for testing (maximal pathway size). Default \code{500}. See \code{\link[clusterProfiler:enricher]{clusterProfiler::enricher()}}}
 }
 \value{
-Data frame of enrichments including pathway, significance, and genes in pathway
+Data frame of enrichments including pathway, significance, and genes
+in pathway
 }
 \description{
 clusterProfiler of significant genes in Broad gene sets

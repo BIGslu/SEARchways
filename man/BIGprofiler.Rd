@@ -51,10 +51,10 @@ H   \tab      \cr
 including gene set name (column 1: gs_name) and gene ID (column2:
 gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
 
-\item{minGSSize}{minimal size of genes annotated for testing (minimal pathway
-size). Default \code{10}}
+\item{minGSSize}{Numeric. Minimum size of genes annotated for testing (minimum pathway
+size). Default \code{10}. See \code{\link[clusterProfiler:enricher]{clusterProfiler::enricher()}}}
 
-\item{maxGSSize}{maximal size of genes annotated for testing (maximal pathway
+\item{maxGSSize}{Numeric. Maximum size of genes annotated for testing (maximum pathway
 size). Default \code{500}. See \code{\link[clusterProfiler:enricher]{clusterProfiler::enricher()}}}
 }
 \value{

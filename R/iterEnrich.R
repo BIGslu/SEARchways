@@ -251,7 +251,7 @@ iterEnrich <- function(anno_df = NULL,
       df_temp <- base_df %>%
         dplyr::select(pathway, dplyr::starts_with(dat, ignore.case = FALSE))
       # remove rows with all NA values (no enrichment in any iteration)
-      df_temp <- df_temp[rowSums(is.na(df_temp[2:(niter+1)])) != (ncol(df_temp)-1), ]
+      df_temp <- df_temp[rowSums(is.na(df_temp[2:ncol(df_temp)])) != (ncol(df_temp)-1), ]
 
       if(dat %in% c("pvalue_","k_","k/K_")){
         if(dat %in% c("pvalue_")){

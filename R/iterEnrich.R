@@ -169,8 +169,8 @@ iterEnrich <- function(anno_df = NULL,
     gv <- c()
     ### Get single annotation for each feature ###
     for(feat in unique(unlist(anno_df[,anno_featCol]))){
-      syms <- anno_df
-      syms <- syms[,anno_annotationCol][which(syms[,anno_featCol] == feat)]
+      featTF <- anno_df[,anno_featCol] == feat
+      syms <- anno_df[featTF,anno_annotationCol]
       syms <- unlist(syms)
 
       set.seed(42*i)

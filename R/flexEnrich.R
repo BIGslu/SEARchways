@@ -6,8 +6,8 @@
 #' @param gene_df Data frame including variable/module groups (column 1: group), and gene name (column2: gene). Can be used instead of gene_list
 #' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
 #' @param species Character string denoting species of interest. "human" or "mouse" Default is "human"
-#' @param category Character string denoting Broad gene set database
-#' @param subcategory Character string denoting Broad gene set sub-database
+#' @param category Character string denoting Broad gene set database. See https://www.gsea-msigdb.org/gsea/msigdb/
+#' @param subcategory Character string denoting Broad gene set sub-database See https://www.gsea-msigdb.org/gsea/msigdb/
 #' @param db Custom database
 #' @param custom_bg Custom background. Formatted as a vector of gene IDs.
 #' @param protein_coding TRUE or FALSE: do you want to limit the background to only protein-coding genes? Default is TRUE
@@ -45,6 +45,12 @@ flexEnrich <- function(gene_list = NULL,
   #Load gene ontology
 
   if(!is.null(category)){
+    #Check that category exists in msigdb
+    all_cat <- msigdbr::msigdbr_collections() %>%
+      dplyr::pull(gs_cat) %>% unique()
+    if(!category %in% all_cat){
+      stop("Category does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
     db.format <- msigdbr::msigdbr(species, category)
     # remove gene sets that are too small or too large
     good_pw <- db.format %>%
@@ -57,13 +63,14 @@ flexEnrich <- function(gene_list = NULL,
       dplyr::filter(gs_name %in% good_pw)
     #Subset subcategory if selected
     if(!is.null(subcategory)){
-      if(length(db.format$gs_subcat[which(db.format$gs_subcat == subcategory)]) == 0){
-        stop("Entered subcategory does not exist in MSigDB")
-      }
-      else{
-        db.format <- db.format %>%
-          dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
-      }
+      #Check that subcategory exists in msigdb
+      all_subcat <- msigdbr::msigdbr_collections() %>%
+        dplyr::pull(gs_subcat) %>% unique()
+      if(!subcategory %in% all_subcat){
+        stop("Subcategory does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
+      db.format <- db.format %>%
+        dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
     }
   } else if(!is.null(db)){
     db.format <- db %>%

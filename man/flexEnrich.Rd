@@ -29,9 +29,9 @@ flexEnrich(
 
 \item{species}{Character string denoting species of interest. "human" or "mouse" Default is "human"}
 
-\item{category}{Character string denoting Broad gene set database}
+\item{category}{Character string denoting Broad gene set database. See https://www.gsea-msigdb.org/gsea/msigdb/}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database}
+\item{subcategory}{Character string denoting Broad gene set sub-database See https://www.gsea-msigdb.org/gsea/msigdb/}
 
 \item{db}{Custom database}
 

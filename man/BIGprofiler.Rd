@@ -48,7 +48,7 @@ clusterProfiler of significant genes in Broad gene sets
 }
 \examples{
 #Get gene names for enrichment
-gene_list <- list(HRV1 = names(example.gene.list[[1]]),
+gene_list <- list(HRV1 = "notReal",
                   HRV2 = names(example.gene.list[[2]]))
 BIGprofiler(gene_list, ID="ENSEMBL", category="H")
 
@@ -60,7 +60,7 @@ BIGprofiler(gene_df=gene_df, ID="ENSEMBL", category="H")
 
 #Use custom data base
 db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
-                 symbol = sample(gene_list[[1]], 20))
+                 symbol = sample(gene_list[[2]], 20))
 
 BIGprofiler(gene_list, ID="ENSEMBL", db=db)
 }

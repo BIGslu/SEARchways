@@ -43,10 +43,10 @@ BIGsea(example.gene.list, category="H", ID="ENSEMBL")
 BIGsea(example.gene.list, category="C2", subcategory="CP", ID="ENSEMBL")
 
 #Use gene_df
-gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
-                      gene = c(names(example.gene.list[[1]]),
+gene_df <- data.frame(gs_name = c("HRV1", rep("HRV2",100)),
+                      gene = c("notReal",
                                names(example.gene.list[[2]])),
-                     logFC = c(example.gene.list[[1]],
+                     logFC = c(example.gene.list[[1]][1],
                                example.gene.list[[2]]))
 BIGsea(gene_df=gene_df, category="H", ID="ENSEMBL")
 

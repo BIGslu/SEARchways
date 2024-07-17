@@ -20,7 +20,7 @@
 #'
 #' @examples
 #' #Get gene names for enrichment
-#' gene_list <- list(HRV1 = names(example.gene.list[[1]]),
+#' gene_list <- list(HRV1 = "notReal",
 #'                   HRV2 = names(example.gene.list[[2]]))
 #' BIGprofiler(gene_list, ID="ENSEMBL", category="H")
 #'
@@ -32,7 +32,7 @@
 #'
 #' #Use custom data base
 #' db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
-#'                  symbol = sample(gene_list[[1]], 20))
+#'                  symbol = sample(gene_list[[2]], 20))
 #'
 #' BIGprofiler(gene_list, ID="ENSEMBL", db=db)
 
@@ -42,7 +42,7 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
                         db = NULL,
                         minGSSize = 10,
                         maxGSSize = 500){
-  db_join <- pathway_GOID <- gs_exact_source <- BgRatio <- Description <- FDR <- GeneRatio <- ensembl_gene <- entrez_gene <- geneID <- gene_symbol <- genes <- group <- group_in_cat.subcat <- group_in_pathway <- gs_cat <- gs_name <- gs_subcat <- `k/K` <- p.adjust <- pathway <- pval <- pvalue <- qvalue <- size_cat.subcat <- size_group <- size_pathway <- NULL
+  db_join <- pathway_GOID <- gs_exact_source <- BgRatio <- Description <- FDR <- GeneRatio <- ensembl_gene <- entrez_gene <- geneID <- gene_symbol <- genes <- group <- group_in_cat.subcat <- group_in_pathway <- gs_cat <- gs_name <- gs_subcat <- `k/K` <- p.adjust <- pathway <- pval <- pvalue <- qvalue <- size_cat.subcat <- size_group <- size_pathway <- gene_list_overlap <- NULL
 
   ##### Database #####
   #Load gene ontology
@@ -120,78 +120,91 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
 
   for(g in names(gene_list_format)){
     print(g)
-    #run enrichment on gene list
-    enrich.result <- clusterProfiler::enricher(gene=gene_list_format[[g]],
-                                               TERM2GENE=db.format2[,1:2],
-                                               minGSSize = minGSSize,
-                                               maxGSSize = maxGSSize)
 
-    #handle no enrichment results
-    if(is.null(enrich.result)){
-      if(!is.null(db)){
-        result.clean <- data.frame(
-          group=g,
-          gs_cat="custom",
-          pathway="No enriched terms")
-      } else{
-        result.clean <- data.frame(
-          group=g,
-          gs_cat=category,
-          gs_subcat=subcategory,
-          pathway="No enriched terms")
-      }
+    #Check that genes exist in db
+    gene_list_overlap <- base::intersect(gene_list_format[[g]],
+                                         unlist(db.format2[,2]))
+    if(length(gene_list_overlap)>0){
+      #run enrichment on gene list
+      enrich.result <- clusterProfiler::enricher(gene=gene_list_overlap,
+                                                 TERM2GENE=db.format2[,1:2],
+                                                 minGSSize = minGSSize,
+                                                 maxGSSize = maxGSSize)
 
-    } else{
-      #Format category labels
-      db.species.clean <- db.format2 %>%
-        dplyr::distinct(gs_cat, gs_subcat, gs_name) %>%
-        dplyr::rename(pathway=gs_name)
-
-      #Format results
-      #Format gene column to vector
-      result.clean <- enrich.result@result %>%
-        tibble::remove_rownames() %>%
-        dplyr::rename(pathway=Description, FDR=p.adjust, pval=pvalue) %>%
-        dplyr::mutate(genes = strsplit(geneID, split="/")) %>%
-        #Extract values from ratios
-        tidyr::separate(BgRatio, into=c("size_pathway","size_cat.subcat"), sep="/") %>%
-        tidyr::separate(GeneRatio, into=c("group_in_pathway",
-                                          "group_in_cat.subcat"),
-                        sep="/") %>%
-        dplyr::mutate_at(dplyr::vars("size_pathway","size_cat.subcat",
-                                     "group_in_pathway","group_in_cat.subcat"),
-                         as.numeric) %>%
-        #Calculate k/K
-        dplyr::mutate("k/K"=group_in_pathway/size_pathway) %>%
-
-        #Add ID columns for database names
-        dplyr::left_join(db.species.clean, by = "pathway") %>%
-        #Add columns for group info
-        dplyr::mutate(group=g, size_group = length(gene_list_format[[g]])) %>%
-        #Reorder variables
-        dplyr::select(group, size_group,
-                      gs_cat, gs_subcat, size_cat.subcat,
-                      group_in_cat.subcat,
-                      pathway, size_pathway, group_in_pathway, `k/K`,
-                      pval, FDR, qvalue, genes) %>%
-        dplyr::arrange(FDR)
-
-      # add GO term reference ID to results
-      if(!is.null(category)){
-        if(category == "C5"){
-          db_join <- db.format %>%
-            dplyr::select(c("gs_name", "gs_exact_source")) %>%
-            dplyr::distinct()
-          result.clean <- result.clean %>%
-            dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
-            dplyr::rename(pathway_GOID = gs_exact_source) %>%
-            dplyr::relocate(pathway_GOID, .after = pathway)
+      #handle no enrichment results
+      if(is.null(enrich.result)){
+        if(!is.null(db)){
+          result.clean <- data.frame(
+            group=g,
+            gs_cat="custom",
+            pathway="No enriched terms")
+        } else{
+          result.clean <- data.frame(
+            group=g,
+            gs_cat=category,
+            gs_subcat=subcategory,
+            pathway="No enriched terms")
         }
-      }
 
-      #Run enrich and save to results list
-      all.results[[g]] <- result.clean
-    }}
+      } else{
+        #Format category labels
+        db.species.clean <- db.format2 %>%
+          dplyr::distinct(gs_cat, gs_subcat, gs_name) %>%
+          dplyr::rename(pathway=gs_name)
+
+        #Format results
+        #Format gene column to vector
+        result.clean <- enrich.result@result %>%
+          tibble::remove_rownames() %>%
+          dplyr::rename(pathway=Description, FDR=p.adjust, pval=pvalue) %>%
+          dplyr::mutate(genes = strsplit(geneID, split="/")) %>%
+          #Extract values from ratios
+          tidyr::separate(BgRatio, into=c("size_pathway","size_cat.subcat"), sep="/") %>%
+          tidyr::separate(GeneRatio, into=c("group_in_pathway",
+                                            "group_in_cat.subcat"),
+                          sep="/") %>%
+          dplyr::mutate_at(dplyr::vars("size_pathway","size_cat.subcat",
+                                       "group_in_pathway","group_in_cat.subcat"),
+                           as.numeric) %>%
+          #Calculate k/K
+          dplyr::mutate("k/K"=group_in_pathway/size_pathway) %>%
+
+          #Add ID columns for database names
+          dplyr::left_join(db.species.clean, by = "pathway") %>%
+          #Add columns for group info
+          dplyr::mutate(group=g, size_group = length(gene_list_format[[g]])) %>%
+          #Reorder variables
+          dplyr::select(group, size_group,
+                        gs_cat, gs_subcat, size_cat.subcat,
+                        group_in_cat.subcat,
+                        pathway, size_pathway, group_in_pathway, `k/K`,
+                        pval, FDR, qvalue, genes) %>%
+          dplyr::arrange(FDR)
+
+        # add GO term reference ID to results
+        if(!is.null(category)){
+          if(category == "C5"){
+            db_join <- db.format %>%
+              dplyr::select(c("gs_name", "gs_exact_source")) %>%
+              dplyr::distinct()
+            result.clean <- result.clean %>%
+              dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
+              dplyr::rename(pathway_GOID = gs_exact_source) %>%
+              dplyr::relocate(pathway_GOID, .after = pathway)
+          }
+        }
+
+        #Run enrich and save to results list
+        all.results[[g]] <- result.clean
+    }
+    }else {
+      all.results[[g]] <- tibble::tibble(
+        group=g, size_group = length(gene_list_format[[g]]),
+        gs_cat=category, gs_subcat=subcategory,
+        size_cat.subcat=NA, group_in_cat.subcat=0,
+        pathway="No overlap of query genes and specified database.")
+    }
+    }
 
   ##### Save results #####
   #combine list of df results

@@ -100,7 +100,6 @@ flexEnrich <- function(gene_list = NULL,
     stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
   }
 
-
   ##### Get gene ID #####
   if(ID == "SYMBOL"){
     db.format2 <- db.format %>%
@@ -117,7 +116,6 @@ flexEnrich <- function(gene_list = NULL,
   } else{
     stop("Please use ID from SYMBOL, ENSEMBL, or ENTREZ.")
   }
-
 
   ##### Format data #####
   if(!is.null(gene_df)){
@@ -225,92 +223,108 @@ flexEnrich <- function(gene_list = NULL,
     kK_ratios <- c()
     genes_in_overlap <- list()
 
-    # Loop through gene sets
-    for(s in unique(db.format2$gs_name)){
-      set <- db.format2$geneID[which(db.format2$gs_name == s)]
-      set_size = length(unique(set))
-      query_in_set <- length(unique(base::intersect(set, query)))
-      kK_ratio <- query_in_set/set_size
-      if(print_genes){
-        query_genes_in_set <- sort(unique(base::intersect(set, query)))
-        #query_genes_in_set <- list(sort(unique(base::intersect(set, query))))
-      }
+    if(n_query_genes > 0){
+      # Loop through gene sets
+      for(s in unique(db.format2$gs_name)){
+        set <- db.format2$geneID[which(db.format2$gs_name == s)]
+        set_size = length(unique(set))
+        query_in_set <- length(unique(base::intersect(set, query)))
+        kK_ratio <- query_in_set/set_size
+        if(print_genes){
+          query_genes_in_set <- sort(unique(base::intersect(set, query)))
+          #query_genes_in_set <- list(sort(unique(base::intersect(set, query))))
+        }
 
-      ## print progress ##
-      i <- which(unique(db.format2$gs_name) == s)
-      if(i/1000 == round(i/1000)){
-        print(paste0(i, " out of ", length(unique(db.format2$gs_name)), " gene sets complete"))
-      }
+        ## print progress ##
+        i <- which(unique(db.format2$gs_name) == s)
+        if(i/1000 == round(i/1000)){
+          print(paste0(i, " out of ", length(unique(db.format2$gs_name)), " gene sets complete"))
+        }
 
-      set_sizes <- c(set_sizes, set_size)
-      overlaps <- c(overlaps, query_in_set)
-      set_names <- c(set_names, s)
-      kK_ratios <- c(kK_ratios, kK_ratio)
+        set_sizes <- c(set_sizes, set_size)
+        overlaps <- c(overlaps, query_in_set)
+        set_names <- c(set_names, s)
+        kK_ratios <- c(kK_ratios, kK_ratio)
 
-      if(print_genes) {
-        if(!is.null(query_genes_in_set)){
-          genes_in_overlap[[i]] <- query_genes_in_set
+        if(print_genes) {
+          if(!is.null(query_genes_in_set)){
+            genes_in_overlap[[i]] <- query_genes_in_set
 
+          } else{
+            genes_in_overlap[[i]] <- NA
+          }
+        }
+
+        if(maxGeneSetSize < set_size | set_size < minGeneSetSize | query_in_set < minOverlap){
+          pvals <- c(pvals, NA)
         } else{
-          genes_in_overlap[[i]] <- NA
+          p <- stats::phyper(query_in_set - 1, set_size, (n_background_genes - set_size), n_query_genes, lower.tail = F)
+          pvals <- c(pvals, p)
         }
       }
 
-      if(maxGeneSetSize < set_size | set_size < minGeneSetSize | query_in_set < minOverlap){
-        pvals <- c(pvals, NA)
-      } else{
-        p <- stats::phyper(query_in_set - 1, set_size, (n_background_genes - set_size), n_query_genes, lower.tail = F)
-        pvals <- c(pvals, p)
+      nrep <- length(unique(db.format2$gs_name))
+
+      res.temp <- tibble::tibble(
+        "group" = rep(g, nrep),
+        "n_query_genes" = rep(n_query_genes, nrep),
+        "n_background_genes" = rep(n_background_genes, nrep),
+        "gs_cat" = rep(category, nrep),
+        "gs_subcat" = rep(subcategory, nrep),
+        "pathway" = set_names,
+        "n_pathway_genes" = set_sizes,
+        "n_query_genes_in_pathway" = overlaps,
+        "k/K" = kK_ratios,
+        "pvalue" = pvals #,
+        #     "genes" = genes_in_overlap
+      )
+
+
+      if(print_genes){
+        names(genes_in_overlap) <- NULL
+        res.temp<- res.temp %>%
+          dplyr::mutate("genes" = genes_in_overlap)
       }
-    }
-
-    nrep <- length(unique(db.format2$gs_name))
-
-    res.temp <- tibble::tibble("group" = rep(g, nrep),
-                               "n_query_genes" = rep(n_query_genes, nrep),
-                               "n_background_genes" = rep(n_background_genes, nrep),
-                               "gs_cat" = rep(category, nrep),
-                               "gs_subcat" = rep(subcategory, nrep),
-                               "pathway" = set_names,
-                               "n_pathway_genes" = set_sizes,
-                               "n_query_genes_in_pathway" = overlaps,
-                               "k/K" = kK_ratios,
-                               "pvalue" = pvals #,
-                               #     "genes" = genes_in_overlap
-    )
 
 
-    if(print_genes){
-      names(genes_in_overlap) <- NULL
-      res.temp<- res.temp %>%
-        dplyr::mutate("genes" = genes_in_overlap)
-    }
+      res.temp <- res.temp %>%
+        dplyr::filter(n_pathway_genes >= minGeneSetSize,
+                      n_pathway_genes <= maxGeneSetSize,
+                      n_query_genes_in_pathway >= minOverlap,
+                      !is.na(pvalue))
 
 
-    res.temp <- res.temp %>%
-      dplyr::filter(n_pathway_genes >= minGeneSetSize,
-                    n_pathway_genes <= maxGeneSetSize,
-                    n_query_genes_in_pathway >= minOverlap,
-                    !is.na(pvalue))
+      res.temp$FDR <- stats::p.adjust(res.temp$pvalue, method = "fdr")
+      res.temp <- res.temp %>%
+        dplyr::relocate(FDR, .after = pvalue)
 
-
-    res.temp$FDR <- stats::p.adjust(res.temp$pvalue, method = "fdr")
-    res.temp <- res.temp %>%
-      dplyr::relocate(FDR, .after = pvalue)
-
-    if(!is.null(category)){
-      if(category == "C5"){
-        db_join <- db.format %>%
-          dplyr::select(c("gs_name", "gs_exact_source")) %>%
-          dplyr::distinct()
-        res.temp <- res.temp %>%
-          dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
-          dplyr::rename(pathway_GOID = gs_exact_source) %>%
-          dplyr::relocate(pathway_GOID, .after = pathway)
+      if(!is.null(category)){
+        if(category == "C5"){
+          db_join <- db.format %>%
+            dplyr::select(c("gs_name", "gs_exact_source")) %>%
+            dplyr::distinct()
+          res.temp <- res.temp %>%
+            dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
+            dplyr::rename(pathway_GOID = gs_exact_source) %>%
+            dplyr::relocate(pathway_GOID, .after = pathway)
+        }
       }
+
+      all.results[[g]] <- res.temp
+    } else{
+      all.results[[g]] <- tibble::tibble(
+        "group" = g,
+        "n_query_genes" = n_query_genes,
+        "n_background_genes" = n_background_genes,
+        "gs_cat" = category,
+        "gs_subcat" = subcategory,
+        "pathway" = "No overlap of query genes and specified database."
+      )
     }
 
-    all.results[[g]] <- res.temp
+
+
+
   }
 
 

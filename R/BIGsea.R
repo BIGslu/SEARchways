@@ -17,10 +17,10 @@
 #' BIGsea(example.gene.list, category="C2", subcategory="CP", ID="ENSEMBL")
 #'
 #' #Use gene_df
-#' gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
-#'                       gene = c(names(example.gene.list[[1]]),
+#' gene_df <- data.frame(gs_name = c("HRV1", rep("HRV2",100)),
+#'                       gene = c("notReal",
 #'                                names(example.gene.list[[2]])),
-#'                      logFC = c(example.gene.list[[1]],
+#'                      logFC = c(example.gene.list[[1]][1],
 #'                                example.gene.list[[2]]))
 #' BIGsea(gene_df=gene_df, category="H", ID="ENSEMBL")
 #'
@@ -127,46 +127,54 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
     message(g)
     #Extract 1 gene list
     genes.temp <- gene_list_format[[g]]
-    #Order by fold change
-    genes.temp <- sort(genes.temp, decreasing = TRUE)
+    #Check that genes exist in db
+    gene_list_overlap <- base::intersect(names(genes.temp), unlist(db.ls))
+    if(length(gene_list_overlap)>0){
+      #Order by fold change
+      genes.temp <- sort(genes.temp, decreasing = TRUE)
 
-    #### FGSEA ####
-    #Set score type based on fold change
-    if(min(genes.temp) < 0 & max(genes.temp) > 0){
-      scoreType <- "std"
-    } else if(max(genes.temp) <= 0){
-      scoreType <- "neg"
-    } else if(min(genes.temp) >= 0){
-      scoreType <- "pos"
-    } else{
-      stop("Could not determine score type from fold changes.")
-    }
-
-    #Run GSEA with fgsea
-    fg.result <- fgsea::fgseaSimple(pathways = db.ls,
-                                    stats = genes.temp,
-                                    nperm=nperm,
-                                    #eps=0,
-                                    scoreType=scoreType) %>%
-      as.data.frame() %>%
-      dplyr::rename(FDR=padj) %>%
-      dplyr::mutate(group=g, gs_cat=category, gs_subcat=subcategory, .before=1)
-
-    # add GO term reference ID to results
-    if(!is.null(category)){
-      if(category == "C5"){
-        db_join <- db.format %>%
-          dplyr::select(c("gs_name", "gs_exact_source")) %>%
-          dplyr::distinct()
-        fg.result <- fg.result %>%
-          dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
-          dplyr::rename(pathway_GOID = gs_exact_source) %>%
-          dplyr::relocate(pathway_GOID, .after = pathway)
+      #### FGSEA ####
+      #Set score type based on fold change
+      if(min(genes.temp) < 0 & max(genes.temp) > 0){
+        scoreType <- "std"
+      } else if(max(genes.temp) <= 0){
+        scoreType <- "neg"
+      } else if(min(genes.temp) >= 0){
+        scoreType <- "pos"
+      } else{
+        stop("Could not determine score type from fold changes.")
       }
-    }
 
-    #### Save ####
-    all.results[[g]] <- fg.result
+      #Run GSEA with fgsea
+      fg.result <- fgsea::fgseaSimple(pathways = db.ls,
+                                      stats = genes.temp,
+                                      nperm=nperm,
+                                      #eps=0,
+                                      scoreType=scoreType) %>%
+        as.data.frame() %>%
+        dplyr::rename(FDR=padj) %>%
+        dplyr::mutate(group=g, gs_cat=category, gs_subcat=subcategory, .before=1)
+
+      # add GO term reference ID to results
+      if(!is.null(category)){
+        if(category == "C5"){
+          db_join <- db.format %>%
+            dplyr::select(c("gs_name", "gs_exact_source")) %>%
+            dplyr::distinct()
+          fg.result <- fg.result %>%
+            dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
+            dplyr::rename(pathway_GOID = gs_exact_source) %>%
+            dplyr::relocate(pathway_GOID, .after = pathway)
+        }
+      }
+
+      #### Save ####
+      all.results[[g]] <- fg.result
+    } else{
+      all.results[[g]] <- tibble::tibble(
+        group=g, gs_cat=category, gs_subcat=subcategory,
+        pathway="No overlap of query genes and specified database.")
+    }
   }
 
   #### Format output ####

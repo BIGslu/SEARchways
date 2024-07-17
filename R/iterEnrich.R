@@ -11,25 +11,7 @@
 #' @param ID Character string. Type of gene annotation used in anno_df. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
 #' @param species Character string denoting species of interest. "human" or "mouse." Default is "human"
 #' @param category Character string denoting Broad gene set database
-#' @param subcategory Character string denoting Broad gene set sub-database
-#' \tabular{rrrrr}{
-#'  \strong{category} \tab    \strong{subcategory}\cr
-#'  C1  \tab      \cr
-#'  C2  \tab      CGP\cr
-#'  C2  \tab      CP\cr
-#'  C2  \tab      CP:BIOCARTA\cr
-#'  C2  \tab      CP:KEGG\cr
-#'  C2  \tab      CP:PID\cr
-#'  C2  \tab      CP:REACTOME\cr
-#'  C2  \tab      CP:WIKIPATHWAYS\cr
-#'  C3  \tab      \cr
-#'  C5  \tab      GO:BP\cr
-#'  C5  \tab      GO:CC\cr
-#'  C5  \tab      GO:MF\cr
-#'  C5  \tab      HPO\cr
-#'  C6  \tab      \cr
-#'  H   \tab      \cr
-#'  }
+#' @param subcategory Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/
 #' @param db If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your anno_df annotations)
 #' @param custom_bg Custom background. Formatted as a vector of gene IDs.
 #' @param protein_coding Logical. Do you want to limit the background to only protein-coding genes? Default is TRUE
@@ -106,16 +88,23 @@ iterEnrich <- function(anno_df = NULL,
 
   ###### get pathway names for base data frame ######
   if(!is.null(category)){
+    #Check that category exists in msigdb
+    all_cat <- msigdbr::msigdbr_collections() %>%
+      dplyr::pull(gs_cat) %>% unique()
+    if(!category %in% all_cat){
+      stop("Category does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
     db.format <- msigdbr::msigdbr(species, category)
     #Subset subcategory if selected
     if(!is.null(subcategory)){
-      if(length(db.format$gs_subcat[which(db.format$gs_subcat == subcategory)]) == 0){
-        stop("Entered subcategory does not exist in MSigDB")
-      }
-      else{
-        db.format <- db.format %>%
-          dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
-      }
+      #Check that subcategory exists in msigdb
+      all_subcat <- msigdbr::msigdbr_collections() %>%
+        dplyr::pull(gs_subcat) %>% unique()
+      if(!subcategory %in% all_subcat){
+        stop("Subcategory does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
+      db.format <- db.format %>%
+        dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
     }
   } else if(!is.null(db)){
     db.format <- db %>%

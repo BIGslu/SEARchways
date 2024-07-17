@@ -6,25 +6,7 @@
 #' @param nperm Numeric permutations for P-value calculations. Default is 1000
 #' @param species Character string denoting species of interest. Default is "human"
 #' @param category Character string denoting Broad gene set database
-#' @param subcategory Character string denoting Broad gene set sub-database \cr
-#' \tabular{rrrrr}{
-#'  \strong{category} \tab    \strong{subcategory}\cr
-#'  C1  \tab      \cr
-#'  C2  \tab      CGP\cr
-#'  C2  \tab      CP\cr
-#'  C2  \tab      CP:BIOCARTA\cr
-#'  C2  \tab      CP:KEGG\cr
-#'  C2  \tab      CP:PID\cr
-#'  C2  \tab      CP:REACTOME\cr
-#'  C2  \tab      CP:WIKIPATHWAYS\cr
-#'  C3  \tab      \cr
-#'  C5  \tab      GO:BP\cr
-#'  C5  \tab      GO:CC\cr
-#'  C5  \tab      GO:MF\cr
-#'  C5  \tab      HPO\cr
-#'  C6  \tab      \cr
-#'  H   \tab      \cr
-#'  }
+#' @param subcategory Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/
 #' @param db If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)
 #'
 #' @return Data frame of enrichments including pathway, significance, and leading edge genes
@@ -51,16 +33,28 @@
 BIGsea <- function(gene_list = NULL, gene_df = NULL,
                    nperm=1000, species="human", ID="SYMBOL",
                    category = NULL, subcategory = NULL, db = NULL){
-  gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- group <- gs_name <- gs_subcat <- padj <- pathway <- col1 <- NULL
+  gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- group <- gs_name <- gs_cat <- gs_subcat <- padj <- pathway <- col1 <- NULL
   #Blank list to hold results
   all.results <- list()
 
   #### Database ####
   #Load gene ontology
   if(!is.null(category)){
+    #Check that category exists in msigdb
+    all_cat <- msigdbr::msigdbr_collections() %>%
+      dplyr::pull(gs_cat) %>% unique()
+    if(!category %in% all_cat){
+      stop("Category does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
     db.format <- msigdbr::msigdbr(species, category)
     #Subset subcategory if selected
     if(!is.null(subcategory)){
+      #Check that subcategory exists in msigdb
+      all_subcat <- msigdbr::msigdbr_collections() %>%
+        dplyr::pull(gs_subcat) %>% unique()
+      if(!subcategory %in% all_subcat){
+        stop("Subcategory does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
       db.format <- db.format %>%
         dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
     }
@@ -115,10 +109,10 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
       temp <- gene_df %>%
         dplyr::filter(get(col1) == g) %>%
         dplyr::distinct()
-    gene_vec <- unlist(temp[,3])
-    names(gene_vec) <- unlist(temp[,2])
+      gene_vec <- unlist(temp[,3])
+      names(gene_vec) <- unlist(temp[,2])
 
-    gene_list_format[[g]] <- gene_vec
+      gene_list_format[[g]] <- gene_vec
     }
   } else if(!is.null(gene_list)){
     gene_list_format <- gene_list

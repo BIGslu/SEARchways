@@ -25,27 +25,9 @@ BIGprofiler(
 
 \item{species}{Character string denoting species of interest. Default is human}
 
-\item{category}{Character string denoting Broad gene set database}
+\item{category}{Character string denoting Broad gene set database. See https://www.gsea-msigdb.org/gsea/msigdb/}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database \cr
-\tabular{rrrrr}{
-\strong{category} \tab    \strong{subcategory}\cr
-C1  \tab      \cr
-C2  \tab      CGP\cr
-C2  \tab      CP\cr
-C2  \tab      CP:BIOCARTA\cr
-C2  \tab      CP:KEGG\cr
-C2  \tab      CP:PID\cr
-C2  \tab      CP:REACTOME\cr
-C2  \tab      CP:WIKIPATHWAYS\cr
-C3  \tab      \cr
-C5  \tab      GO:BP\cr
-C5  \tab      GO:CC\cr
-C5  \tab      GO:MF\cr
-C5  \tab      HPO\cr
-C6  \tab      \cr
-H   \tab      \cr
-}}
+\item{subcategory}{Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/}
 
 \item{db}{If not using Broad databases, a data frame with gene ontology
 including gene set name (column 1: gs_name) and gene ID (column2:

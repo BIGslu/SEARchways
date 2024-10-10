@@ -6,6 +6,7 @@
 #' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
 #' @param rand Character string specifying the type of randomization to create the null distribution. One of "multi" (default, randomize samples in groups and genes in gene sets), "label" (randomize genes in gene sets. Recommended for small sample groups), "simple" (randomize samples in group)
 #' @param rand_var Character string specifying the variable to randomize in the label method
+#' @param rand_est Data frame with random variable estimates. From prior run of BIGsea in the estimates slot
 #' @param nperm Numeric permutations for P-value calculations. Default is 1000
 #' @param species Character string denoting species of interest. Default is "human"
 #' @param category Character string denoting Broad gene set database
@@ -43,9 +44,17 @@
 #'                       gene = c(names(example.gene.list[[2]])),
 #'                      logFC = c(example.gene.list[[2]]))
 #' example.voom <- kimma::example.voom
-#' BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
+#' test <- BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
 #'        category="C2", subcategory="CP",
 #'        rand="label", rand_var="virus",
+#'        model="~virus+median_cv_coverage",
+#'        run_lm=TRUE, use_weights=TRUE,
+#'        nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"))
+#'
+#' #Use pre-calculated random estimates
+#' BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
+#'        category="C2", subcategory="CP",
+#'        rand="label", rand_var="virus", rand_est=test[['estimates']],
 #'        model="~virus+median_cv_coverage",
 #'        run_lm=TRUE, use_weights=TRUE,
 #'        nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"))
@@ -53,16 +62,12 @@
 BIGsea <- function(gene_list = NULL, gene_df = NULL,
                    dat = NULL,
                    rand="multi", nperm=1000,
-                   rand_var=NULL,
+                   rand_var=NULL, rand_est=NULL,
                    species="human", ID="SYMBOL",
                    category = NULL, subcategory = NULL, pw = NULL, db = NULL,
                    minGeneSetSize = 10, maxGeneSetSize = 1e10,
                    processors = 1, ...){
   gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- gs_name <- gs_cat <- gs_subcat <- padj <- pathway <- col1 <- NULL
-
-  if(rand=="label"){
-    message("Label randomization runs multiple kimma models. Only recommended for small data sets or pre-selected gene sets to reduce computational time.\n")
-  }
 
   #Blank list to hold results
   all.results <- list()
@@ -210,6 +215,7 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
         fg.result <- tibble::tibble(
           group=g, gs_cat=category, gs_subcat=subcategory,
           pathway="No overlap of query genes and specified database.") }
+      est.result <- NULL
     } else if(rand == "label"){
       #Check gene list/df name matches variable in targets data
       if(!g %in% colnames(dat$targets)){
@@ -226,17 +232,20 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
       if(length(gene_list_overlap)>0){
         #### FGSEA ####
         #Run GSEA with fgsea
-        fg.result <- SEARchways::fgseaLabel2(
+        label.result <- SEARchways::fgseaLabel2(
           estimates = genes.temp,
           pathways = db.ls,
           dat = dat, label = g,
-          rand_var = rand_var,
+          rand_var = rand_var, rand_est = rand_est,
           nperm = nperm,
           minSize = minGeneSetSize, maxSize = maxGeneSetSize,
           #eps=0,
-          nproc = processors, ...) %>%
+          nproc = processors, ...)
+
+        fg.result <- label.result[["pvals"]] %>%
           as.data.frame() %>%
           dplyr::mutate(method="label", .before=0)
+        est.result <- label.result[["estimates"]]
       } else {
         all.results[[g]] <- tibble::tibble(
           group=g, gs_cat=category, gs_subcat=subcategory,
@@ -268,6 +277,13 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
   #Unlist results into 1 df
   all.results.df <- dplyr::bind_rows(all.results)
 
-  return(all.results.df)
+  if(rand %in% c("simple","multi")){
+    return(all.results.df)
+  } else if (rand=="label"){
+    all.results.ls <- list()
+    all.results.ls[["gsea"]] <- all.results.df
+    all.results.ls[["estimates"]] <- est.result
+    return(all.results.ls)
+  }
 }
 

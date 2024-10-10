@@ -11,6 +11,7 @@ BIGsea(
   rand = "multi",
   nperm = 1000,
   rand_var = NULL,
+  rand_est = NULL,
   species = "human",
   ID = "SYMBOL",
   category = NULL,
@@ -35,6 +36,8 @@ BIGsea(
 \item{nperm}{Numeric permutations for P-value calculations. Default is 1000}
 
 \item{rand_var}{Character string specifying the variable to randomize in the label method}
+
+\item{rand_est}{Data frame with random variable estimates. From prior run of BIGsea in the estimates slot}
 
 \item{species}{Character string denoting species of interest. Default is "human"}
 
@@ -85,9 +88,17 @@ gene_df <- data.frame(gs_name = rep("virus",100),
                       gene = c(names(example.gene.list[[2]])),
                      logFC = c(example.gene.list[[2]]))
 example.voom <- kimma::example.voom
-BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
+test <- BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
        category="C2", subcategory="CP",
        rand="label", rand_var="virus",
+       model="~virus+median_cv_coverage",
+       run_lm=TRUE, use_weights=TRUE,
+       nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"))
+
+#Use pre-calculated random estimates
+BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
+       category="C2", subcategory="CP",
+       rand="label", rand_var="virus", rand_est=test[['estimates']],
        model="~virus+median_cv_coverage",
        run_lm=TRUE, use_weights=TRUE,
        nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"))

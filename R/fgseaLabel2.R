@@ -7,6 +7,7 @@
 #' @param label Numeric vector of labels for the correlation score of the same length as the number of columns in `mat`
 #' @param nperm Number of permutations to do. Minimal possible nominal p-value is about 1/nperm
 #' @param rand_var Character string specifying the variable to randomize in the label method
+#' @param rand_est Data frame with random variable estimates. From prior run of BIGsea in the estimates slot
 #' @param minSize Minimal size of a gene set to test. All pathways below the threshold are excluded.
 #' @param maxSize Maximal size of a gene set to test. All pathways above the threshold are excluded.
 #' @param nproc If not equal to zero sets BPPARAM to use nproc workers (default = 0).
@@ -26,7 +27,7 @@
 #' @importFrom BiocParallel bplapply
 
 fgseaLabel2 <- function(pathways, dat, label,
-                        nperm, rand_var,
+                        nperm, rand_var, rand_est,
                         minSize=1, maxSize=nrow(dat$E)-1,
                         nproc=0,
                         gseaParam=1,
@@ -111,52 +112,57 @@ fgseaLabel2 <- function(pathways, dat, label,
   seeds <- sample.int(10^9, length(permPerProc))
   BPPARAM <- fgsea:::setUpBPPARAM(nproc, BPPARAM)
 
-  # Hold kimma results
-  rand_est <- data.frame(matrix(nrow=nrow(dat$E), ncol=0))
-  rownames(rand_est) <- rownames(dat$E)
-
   # Run models for randomized labels
-  for(i in 1:ncol(rand_labels)){
-    print(paste("kimma permutation",i))
-    #Extract group labels
-    dat$targets$random <- as.factor(rand_labels[,i])
+  if(is.null(rand_est)){
+    message("Label randomization runs multiple kimma models. This may take a long time.\n")
+    # Hold kimma results
+    rand_est <- data.frame(matrix(nrow=nrow(dat$E), ncol=0))
+    rownames(rand_est) <- rownames(dat$E)
 
-    # parse kimma parameters in ...
-    dots <- list(...)
-    if(!"kin" %in% names(dots)){dots$kin <- NULL}
-    if(!"patientID" %in% names(dots)){dots$patientID <- "ptID"}
-    if(!"libraryID" %in% names(dots)){dots$libraryID <- "libID"}
-    if(!"model" %in% names(dots)){stop("model required for label randomization.")}
-    if(!"use_weights" %in% names(dots)){dots$use_weights <- TRUE}
-    if(!"run_lm" %in% names(dots)){dots$run_lm <- FALSE}
-    if(!"run_lme" %in% names(dots)){dots$run_lme <- FALSE}
-    if(!"run_lmerel" %in% names(dots)){dots$run_lmerel <- FALSE}
-    if(!"p_method" %in% names(dots)){dots$p_method <- "BH"}
+    for(i in 1:ncol(rand_labels)){
+      print(paste("kimma permutation",i))
+      #Extract group labels
+      dat$targets$random <- as.factor(rand_labels[,i])
 
-    # reformat model to use random variable
-    model_rand <- gsub(rand_var,"random",dots$model)
-    # Run kimma model to calculate estimates
-    suppressMessages(fit <- kimma::kmFit(dat = dat,
-                                         kin = dots$kin,
-                                         patientID = dots$patientID,
-                                         libraryID = dots$libraryID,
-                                         model=model_rand,
-                                         use_weights = dots$use_weights,
-                                         run_lm = dots$run_lm,
-                                         run_lme = dots$run_lme,
-                                         run_lmerel = dots$run_lmerel,
-                                         metrics = FALSE,
-                                         run_contrast = FALSE,
-                                         contrast_var = NULL,
-                                         processors = nproc,
-                                         p_method = dots$p_method
-                                         ))
+      # parse kimma parameters in ...
+      dots <- list(...)
+      if(!"kin" %in% names(dots)){dots$kin <- NULL}
+      if(!"patientID" %in% names(dots)){dots$patientID <- "ptID"}
+      if(!"libraryID" %in% names(dots)){dots$libraryID <- "libID"}
+      if(!"model" %in% names(dots)){stop("model required for label randomization.")}
+      if(!"use_weights" %in% names(dots)){dots$use_weights <- TRUE}
+      if(!"run_lm" %in% names(dots)){dots$run_lm <- FALSE}
+      if(!"run_lme" %in% names(dots)){dots$run_lme <- FALSE}
+      if(!"run_lmerel" %in% names(dots)){dots$run_lmerel <- FALSE}
+      if(!"p_method" %in% names(dots)){dots$p_method <- "BH"}
 
-    #Extract estimates
-    rand_est[,i] <- fit[[1]] %>%
-      dplyr::arrange(match(gene, rownames(rand_est))) %>%
-      dplyr::filter(variable=="random2") %>%
-      dplyr::pull(estimate)
+      # reformat model to use random variable
+      model_rand <- gsub(rand_var,"random",dots$model)
+      # Run kimma model to calculate estimates
+      suppressMessages(fit <- kimma::kmFit(dat = dat,
+                                           kin = dots$kin,
+                                           patientID = dots$patientID,
+                                           libraryID = dots$libraryID,
+                                           model=model_rand,
+                                           use_weights = dots$use_weights,
+                                           run_lm = dots$run_lm,
+                                           run_lme = dots$run_lme,
+                                           run_lmerel = dots$run_lmerel,
+                                           metrics = FALSE,
+                                           run_contrast = FALSE,
+                                           contrast_var = NULL,
+                                           processors = nproc,
+                                           p_method = dots$p_method
+      ))
+
+      #Extract estimates
+      rand_est[,i] <- fit[[1]] %>%
+        dplyr::arrange(match(gene, rownames(rand_est))) %>%
+        dplyr::filter(variable=="random2") %>%
+        dplyr::pull(estimate)
+    }
+  } else{
+    rand_est <- rand_est
   }
 
   # Run GSEA
@@ -219,6 +225,9 @@ fgseaLabel2 <- function(pathways, dat, label,
                   leadingEdge=leadingEdges) %>%
     dplyr::select(-leZeroMean, -geZeroMean, -nLeEs, -nGeEs)
 
-  return(pvals)
+  result <- list()
+  result[["pvals"]] <- pvals
+  result[["estimates"]] <- rand_est
+  return(result)
 }
 

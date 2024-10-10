@@ -12,6 +12,7 @@ fgseaLabel2(
   label,
   nperm,
   rand_var,
+  rand_est,
   minSize = 1,
   maxSize = nrow(dat$E) - 1,
   nproc = 0,
@@ -31,6 +32,8 @@ fgseaLabel2(
 \item{nperm}{Number of permutations to do. Minimal possible nominal p-value is about 1/nperm}
 
 \item{rand_var}{Character string specifying the variable to randomize in the label method}
+
+\item{rand_est}{Data frame with random variable estimates. From prior run of BIGsea in the estimates slot}
 
 \item{minSize}{Minimal size of a gene set to test. All pathways below the threshold are excluded.}
 

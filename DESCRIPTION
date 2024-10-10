@@ -9,9 +9,11 @@ Description: Run Enchinchment analysis using enrichr, GSEA and clusterprofiler.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Imports: 
+    data.table,
     dplyr,
+    fastmatch,
     magrittr,
     tidyr,
     msigdbr,
@@ -19,10 +21,15 @@ Imports:
     fgsea,
     clusterProfiler,
     foreach,
-    doParallel
-biocViews:
-Remotes: BIGslu/BIGpicture
-Suggests: BIGpicture
+    doParallel,
+    Matrix,
+    BiocParallel
+biocViews: 
+Remotes: BIGslu/BIGpicture, BIGslu/kimma
+Suggests: 
+    BIGpicture, 
+    limma,
+    kimma
 Depends: 
     R (>= 4.1)
 LazyData: true

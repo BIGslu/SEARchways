@@ -7,20 +7,34 @@
 BIGsea(
   gene_list = NULL,
   gene_df = NULL,
+  dat = NULL,
+  rand = "multi",
   nperm = 1000,
+  rand_var = NULL,
   species = "human",
   ID = "SYMBOL",
   category = NULL,
   subcategory = NULL,
-  db = NULL
+  pw = NULL,
+  db = NULL,
+  minGeneSetSize = 10,
+  maxGeneSetSize = 1e+10,
+  processors = 1,
+  ...
 )
 }
 \arguments{
-\item{gene_list}{Named list object with named numeric vectors of gene symbols and logFC}
+\item{gene_list}{Named list object with named numeric vectors of gene symbols and logFC. List names must match dat$targetes column names if using rand="label"}
 
-\item{gene_df}{Data frame including variable/module groups (column 1: group), gene name (column2: gene), and log fold change (column 3: logFC). Can be used instead of gene_list}
+\item{gene_df}{Data frame including variable/module groups (column 1: group), gene name (column2: gene), and log fold change (column 3: logFC). Can be used instead of gene_list. group levels must match dat$targetes column names if using rand="label"}
+
+\item{dat}{Voom object with gene expression and sample metadata. Used in label randomization only}
+
+\item{rand}{Character string specifying the type of randomization to create the null distribution. One of "multi" (default, randomize samples in groups and genes in gene sets), "label" (randomize genes in gene sets. Recommended for small sample groups), "simple" (randomize samples in group)}
 
 \item{nperm}{Numeric permutations for P-value calculations. Default is 1000}
+
+\item{rand_var}{Character string specifying the variable to randomize in the label method}
 
 \item{species}{Character string denoting species of interest. Default is "human"}
 
@@ -30,7 +44,17 @@ BIGsea(
 
 \item{subcategory}{Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/}
 
+\item{pw}{Character vector of pathway names to include. Must still provide category/subcategory. Format must exact match database such as HALLMARK_INTERFERON_GAMMA_RESPONSE}
+
 \item{db}{If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
+
+\item{minGeneSetSize}{Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.}
+
+\item{maxGeneSetSize}{Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10}
+
+\item{processors}{Numeric total processors to use. Default is 1}
+
+\item{...}{Additional parameters for kimma::kmFit needed if rand = "label"}
 }
 \value{
 Data frame of enrichments including pathway, significance, and leading edge genes
@@ -39,20 +63,32 @@ Data frame of enrichments including pathway, significance, and leading edge gene
 Run gene set enrichment analysis (GSEA) on multiple list using fgsea. More information about GSEA and geneset databases check https://www.gsea-msigdb.org/gsea/msigdb
 }
 \examples{
-BIGsea(example.gene.list, category="H", ID="ENSEMBL")
+BIGsea(example.gene.list, category="H", ID="ENSEMBL") #no result
 BIGsea(example.gene.list, category="C2", subcategory="CP", ID="ENSEMBL")
 
-#Use gene_df
+#Use gene_df. No overlap message
 gene_df <- data.frame(gs_name = c("HRV1", rep("HRV2",100)),
                       gene = c("notReal",
                                names(example.gene.list[[2]])),
                      logFC = c(example.gene.list[[1]][1],
                                example.gene.list[[2]]))
-BIGsea(gene_df=gene_df, category="H", ID="ENSEMBL")
+BIGsea(gene_df=gene_df, category="C2", subcategory="CP", ID="ENSEMBL",
+       rand="simple")
 
 #Use custom data base
 db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
                  symbol = sample(names(example.gene.list[[1]]), 20))
 BIGsea(example.gene.list, ID="ENSEMBL", db=db)
 
+#Use label randomization
+gene_df <- data.frame(gs_name = rep("virus",100),
+                      gene = c(names(example.gene.list[[2]])),
+                     logFC = c(example.gene.list[[2]]))
+example.voom <- kimma::example.voom
+BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
+       category="C2", subcategory="CP",
+       rand="label", rand_var="virus",
+       model="~virus+median_cv_coverage",
+       run_lm=TRUE, use_weights=TRUE,
+       nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"))
 }

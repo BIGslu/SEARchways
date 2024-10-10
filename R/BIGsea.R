@@ -1,39 +1,69 @@
 #' @title BIGsea
 #' @description Run gene set enrichment analysis (GSEA) on multiple list using fgsea. More information about GSEA and geneset databases check https://www.gsea-msigdb.org/gsea/msigdb
-#' @param gene_list Named list object with named numeric vectors of gene symbols and logFC
-#' @param gene_df Data frame including variable/module groups (column 1: group), gene name (column2: gene), and log fold change (column 3: logFC). Can be used instead of gene_list
+#' @param gene_list Named list object with named numeric vectors of gene symbols and logFC. List names must match dat$targetes column names if using rand="label"
+#' @param gene_df Data frame including variable/module groups (column 1: group), gene name (column2: gene), and log fold change (column 3: logFC). Can be used instead of gene_list. group levels must match dat$targetes column names if using rand="label"
+#' @param dat Voom object with gene expression and sample metadata. Used in label randomization only
 #' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
+#' @param rand Character string specifying the type of randomization to create the null distribution. One of "multi" (default, randomize samples in groups and genes in gene sets), "label" (randomize genes in gene sets. Recommended for small sample groups), "simple" (randomize samples in group)
+#' @param rand_var Character string specifying the variable to randomize in the label method
 #' @param nperm Numeric permutations for P-value calculations. Default is 1000
 #' @param species Character string denoting species of interest. Default is "human"
 #' @param category Character string denoting Broad gene set database
 #' @param subcategory Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/
+#' @param pw Character vector of pathway names to include. Must still provide category/subcategory. Format must exact match database such as HALLMARK_INTERFERON_GAMMA_RESPONSE
 #' @param db If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)
+#' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.
+#' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10
+#' @param processors Numeric total processors to use. Default is 1
+#' @param ... Additional parameters for kimma::kmFit needed if rand = "label"
 #'
 #' @return Data frame of enrichments including pathway, significance, and leading edge genes
 #' @export
 #'
 #' @examples
-#' BIGsea(example.gene.list, category="H", ID="ENSEMBL")
+#' BIGsea(example.gene.list, category="H", ID="ENSEMBL") #no result
 #' BIGsea(example.gene.list, category="C2", subcategory="CP", ID="ENSEMBL")
 #'
-#' #Use gene_df
+#' #Use gene_df. No overlap message
 #' gene_df <- data.frame(gs_name = c("HRV1", rep("HRV2",100)),
 #'                       gene = c("notReal",
 #'                                names(example.gene.list[[2]])),
 #'                      logFC = c(example.gene.list[[1]][1],
 #'                                example.gene.list[[2]]))
-#' BIGsea(gene_df=gene_df, category="H", ID="ENSEMBL")
+#' BIGsea(gene_df=gene_df, category="C2", subcategory="CP", ID="ENSEMBL",
+#'        rand="simple")
 #'
 #' #Use custom data base
 #' db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
 #'                  symbol = sample(names(example.gene.list[[1]]), 20))
 #' BIGsea(example.gene.list, ID="ENSEMBL", db=db)
 #'
+#' #Use label randomization
+#' gene_df <- data.frame(gs_name = rep("virus",100),
+#'                       gene = c(names(example.gene.list[[2]])),
+#'                      logFC = c(example.gene.list[[2]]))
+#' example.voom <- kimma::example.voom
+#' BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
+#'        category="C2", subcategory="CP",
+#'        rand="label", rand_var="virus",
+#'        model="~virus+median_cv_coverage",
+#'        run_lm=TRUE, use_weights=TRUE,
+#'        nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"))
 
 BIGsea <- function(gene_list = NULL, gene_df = NULL,
-                   nperm=1000, species="human", ID="SYMBOL",
-                   category = NULL, subcategory = NULL, db = NULL){
-  gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- group <- gs_name <- gs_cat <- gs_subcat <- padj <- pathway <- col1 <- NULL
+                   dat = NULL,
+                   rand="multi", nperm=1000,
+                   rand_var=NULL,
+                   species="human", ID="SYMBOL",
+                   category = NULL, subcategory = NULL, pw = NULL, db = NULL,
+                   minGeneSetSize = 10, maxGeneSetSize = 1e10,
+                   processors = 1, ...){
+  gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- gs_name <- gs_cat <- gs_subcat <- padj <- pathway <- col1 <- NULL
+
+  if(rand=="label"){
+    message("Label randomization runs multiple kimma models. Only recommended for small data sets or pre-selected gene sets to reduce computational time.\n")
+  }
+
   #Blank list to hold results
   all.results <- list()
 
@@ -74,6 +104,14 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
     }
   } else {
     stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
+  }
+
+  #Filter select pathways
+  if(!is.null(pw)){
+    db.format <- db.format %>% dplyr::filter(gs_name %in% pw)
+    if(nrow(db.format)==0){
+      stop("No pathways present in data base. Please check spelling in pw.")
+    }
   }
 
   #Get gene ID
@@ -117,64 +155,113 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
   } else if(!is.null(gene_list)){
     gene_list_format <- gene_list
   } else{
+    gene_list_format <- NULL
     stop("Please provide either gene_list or gene_df.")
   }
-
 
   #### Loop ####
   #Loop through each list in the gene_list_format object
   for(g in names(gene_list_format)){
-    message(g)
-    #Extract 1 gene list
-    genes.temp <- gene_list_format[[g]]
-    #Check that genes exist in db
-    gene_list_overlap <- base::intersect(names(genes.temp), unlist(db.ls))
-    if(length(gene_list_overlap)>0){
-      #Order by fold change
-      genes.temp <- sort(genes.temp, decreasing = TRUE)
+    message(paste("Running",g))
+    if(rand %in% c("simple","multi")){
+      #Extract 1 gene list
+      genes.temp <- gene_list_format[[g]]
+      #Check that genes exist in db
+      gene_list_overlap <- base::intersect(names(genes.temp), unlist(db.ls))
 
-      #### FGSEA ####
-      #Set score type based on fold change
-      if(min(genes.temp) < 0 & max(genes.temp) > 0){
-        scoreType <- "std"
-      } else if(max(genes.temp) <= 0){
-        scoreType <- "neg"
-      } else if(min(genes.temp) >= 0){
-        scoreType <- "pos"
-      } else{
-        stop("Could not determine score type from fold changes.")
-      }
+      if(length(gene_list_overlap)>0){
+        #Order by fold change
+        genes.temp <- sort(genes.temp, decreasing = TRUE)
 
-      #Run GSEA with fgsea
-      fg.result <- fgsea::fgseaSimple(pathways = db.ls,
-                                      stats = genes.temp,
-                                      nperm=nperm,
-                                      #eps=0,
-                                      scoreType=scoreType) %>%
-        as.data.frame() %>%
-        dplyr::rename(FDR=padj) %>%
-        dplyr::mutate(group=g, gs_cat=category, gs_subcat=subcategory, .before=1)
-
-      # add GO term reference ID to results
-      if(!is.null(category)){
-        if(category == "C5"){
-          db_join <- db.format %>%
-            dplyr::select(c("gs_name", "gs_exact_source")) %>%
-            dplyr::distinct()
-          fg.result <- fg.result %>%
-            dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
-            dplyr::rename(pathway_GOID = gs_exact_source) %>%
-            dplyr::relocate(pathway_GOID, .after = pathway)
+        #### FGSEA ####
+        #Set score type based on fold change
+        if(min(genes.temp) < 0 & max(genes.temp) > 0){
+          scoreType <- "std"
+        } else if(max(genes.temp) <= 0){
+          scoreType <- "neg"
+        } else if(min(genes.temp) >= 0){
+          scoreType <- "pos"
+        } else{
+          stop("Could not determine score type from fold changes.")
         }
-      }
 
-      #### Save ####
-      all.results[[g]] <- fg.result
+        #Run GSEA with fgsea
+        if(rand == "multi"){
+          fg.result <- fgsea::fgseaMultilevel(
+            pathways = db.ls, stats = genes.temp,
+            nPermSimple = nperm,
+            minSize = minGeneSetSize, maxSize = maxGeneSetSize,
+            sampleSize = 101,
+            #eps=0,
+            scoreType = scoreType, nproc = processors) %>%
+            as.data.frame() %>%
+            dplyr::mutate(method="multi", .before=0)
+        } else if(rand == "simple"){
+          fg.result <- fgsea::fgseaSimple(
+            pathways = db.ls, stats = genes.temp,
+            nperm = nperm,
+            minSize = minGeneSetSize, maxSize = maxGeneSetSize,
+            #eps=0,
+            scoreType = scoreType, nproc = processors) %>%
+            as.data.frame() %>%
+            dplyr::mutate(method="simple", .before=0)
+        }
+      } else {
+        fg.result <- tibble::tibble(
+          group=g, gs_cat=category, gs_subcat=subcategory,
+          pathway="No overlap of query genes and specified database.") }
+    } else if(rand == "label"){
+      #Check gene list/df name matches variable in targets data
+      if(!g %in% colnames(dat$targets)){
+        stop("All group names in gene_df or gene_list must be columns in dat$targets")
+        }
+
+      #Extract 1 gene list
+      genes.temp <- gene_list_format[[g]]
+
+      #### error about names
+      #Check that genes exist in db
+      gene_list_overlap <- base::intersect(rownames(dat$E), unlist(db.ls))
+
+      if(length(gene_list_overlap)>0){
+        #### FGSEA ####
+        #Run GSEA with fgsea
+        fg.result <- SEARchways::fgseaLabel2(
+          estimates = genes.temp,
+          pathways = db.ls,
+          dat = dat, label = g,
+          rand_var = rand_var,
+          nperm = nperm,
+          minSize = minGeneSetSize, maxSize = maxGeneSetSize,
+          #eps=0,
+          nproc = processors, ...) %>%
+          as.data.frame() %>%
+          dplyr::mutate(method="label", .before=0)
+      } else {
+        all.results[[g]] <- tibble::tibble(
+          group=g, gs_cat=category, gs_subcat=subcategory,
+          pathway="No overlap of query genes and specified database.") }
     } else{
-      all.results[[g]] <- tibble::tibble(
-        group=g, gs_cat=category, gs_subcat=subcategory,
-        pathway="No overlap of query genes and specified database.")
-    }
+      stop("rand must be set to one of multi, simple, or label") }
+
+    fg.result <- fg.result %>%
+      dplyr::rename(FDR=padj) %>%
+      dplyr::mutate(group=g, gs_cat=category, gs_subcat=subcategory, .before=1)
+
+    # add GO term reference ID to results
+    if(!is.null(category)){
+      if(category == "C5"){
+        db_join <- db.format %>%
+          dplyr::select(c("gs_name", "gs_exact_source")) %>%
+          dplyr::distinct()
+        fg.result <- fg.result %>%
+          dplyr::left_join(db_join, by = c("pathway" = "gs_name")) %>%
+          dplyr::rename(pathway_GOID = gs_exact_source) %>%
+          dplyr::relocate(pathway_GOID, .after = pathway)
+      }}
+
+    #### Save ####
+    all.results[[g]] <- fg.result
   }
 
   #### Format output ####

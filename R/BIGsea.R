@@ -10,6 +10,7 @@
 #' @param species Character string denoting species of interest. Default is "human"
 #' @param category Character string denoting Broad gene set database
 #' @param subcategory Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/
+#' @param pw Character vector of pathway names to include. Must still provide category/subcategory. Format must exact match database such as HALLMARK_INTERFERON_GAMMA_RESPONSE
 #' @param db If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)
 #' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.
 #' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10
@@ -47,14 +48,14 @@
 #'        rand="label", rand_var="virus",
 #'        model="~virus+median_cv_coverage",
 #'        run_lm=TRUE, use_weights=TRUE,
-#'        nperm=2)
+#'        nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"))
 
 BIGsea <- function(gene_list = NULL, gene_df = NULL,
                    dat = NULL,
                    rand="multi", nperm=1000,
                    rand_var=NULL,
                    species="human", ID="SYMBOL",
-                   category = NULL, subcategory = NULL, db = NULL,
+                   category = NULL, subcategory = NULL, pw = NULL, db = NULL,
                    minGeneSetSize = 10, maxGeneSetSize = 1e10,
                    processors = 1, ...){
   gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- gs_name <- gs_cat <- gs_subcat <- padj <- pathway <- col1 <- NULL
@@ -103,6 +104,14 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
     }
   } else {
     stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
+  }
+
+  #Filter select pathways
+  if(!is.null(pw)){
+    db.format <- db.format %>% dplyr::filter(gs_name %in% pw)
+    if(nrow(db.format)==0){
+      stop("No pathways present in data base. Please check spelling in pw.")
+    }
   }
 
   #Get gene ID

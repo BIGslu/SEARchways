@@ -15,6 +15,7 @@ BIGsea(
   ID = "SYMBOL",
   category = NULL,
   subcategory = NULL,
+  pw = NULL,
   db = NULL,
   minGeneSetSize = 10,
   maxGeneSetSize = 1e+10,
@@ -42,6 +43,8 @@ BIGsea(
 \item{category}{Character string denoting Broad gene set database}
 
 \item{subcategory}{Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/}
+
+\item{pw}{Character vector of pathway names to include. Must still provide category/subcategory. Format must exact match database such as HALLMARK_INTERFERON_GAMMA_RESPONSE}
 
 \item{db}{If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
 
@@ -87,5 +90,5 @@ BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
        rand="label", rand_var="virus",
        model="~virus+median_cv_coverage",
        run_lm=TRUE, use_weights=TRUE,
-       nperm=2)
+       nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"))
 }

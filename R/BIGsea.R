@@ -198,7 +198,8 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
             minSize = minGeneSetSize, maxSize = maxGeneSetSize,
             sampleSize = 101,
             #eps=0,
-            scoreType = scoreType, nproc = processors) %>%
+            scoreType = scoreType, nproc = processors,
+            ...) %>%
             as.data.frame() %>%
             dplyr::mutate(method="multi", .before=0)
         } else if(rand == "simple"){
@@ -207,7 +208,8 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
             nperm = nperm,
             minSize = minGeneSetSize, maxSize = maxGeneSetSize,
             #eps=0,
-            scoreType = scoreType, nproc = processors) %>%
+            scoreType = scoreType, nproc = processors,
+            ...) %>%
             as.data.frame() %>%
             dplyr::mutate(method="simple", .before=0)
         }

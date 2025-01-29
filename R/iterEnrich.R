@@ -345,7 +345,7 @@ iterEnrich <- function(anno_df = NULL,
     genes_overlap_df <- dplyr::tibble("pathway" = unique(results_df_summary$pathway),
                                       "genes" = genes_overlap)
     results_df_summary <- results_df_summary %>%
-      dplyr::left_join(genes_overlap_df)
+      dplyr::left_join(genes_overlap_df, by = dplyr::join_by(pathway))
   }
 
 

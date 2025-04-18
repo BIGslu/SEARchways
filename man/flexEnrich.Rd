@@ -56,7 +56,7 @@ Run hypergeometric enrichment on multiple lists using phyper. Permits gene symbo
 \examples{
 gene_list <- list(HRV1 = names(example.gene.list[[1]]),
                   HRV2 = names(example.gene.list[[2]]))
-flexEnrich(gene_list = gene_list, category = "H", ID = "ENSEMBL")
+flexEnrich(gene_list = gene_list, category = "H", ID = "ENSEMBL", species="human")
 }
 \author{
 Madison Cox

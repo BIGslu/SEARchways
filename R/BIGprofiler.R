@@ -42,32 +42,41 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
                         db = NULL,
                         minGSSize = 10,
                         maxGSSize = 500){
-  db_join <- pathway_GOID <- gs_exact_source <- BgRatio <- Description <- FDR <- GeneRatio <- ensembl_gene <- entrez_gene <- geneID <- gene_symbol <- genes <- group <- group_in_cat.subcat <- group_in_pathway <- gs_cat <- gs_name <- gs_subcat <- `k/K` <- p.adjust <- pathway <- pval <- pvalue <- qvalue <- size_cat.subcat <- size_group <- size_pathway <- gene_list_overlap <- NULL
+  db_join <- pathway_GOID <- gs_exact_source <- BgRatio <- Description <- FDR <- GeneRatio <- ensembl_gene <- entrez_gene <- geneID <- gene_symbol <- genes <- group <- group_in_cat.subcat <- group_in_pathway <- gs_collection <- gs_name <- gs_subcollection <- `k/K` <- p.adjust <- pathway <- pval <- pvalue <- qvalue <- size_cat.subcat <- size_group <- size_pathway <- gene_list_overlap <- db_species <- NULL
 
   ##### Database #####
   #Load gene ontology
   if(!is.null(category)){
     #Check that category exists in msigdb
     all_cat <- msigdbr::msigdbr_collections() %>%
-      dplyr::pull(gs_cat) %>% unique()
+      dplyr::pull(gs_collection) %>% unique()
     if(!category %in% all_cat){
       stop("Category does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
-    db.format <- msigdbr::msigdbr(species, category)
+    #Recode species
+    if(species == "human"){
+      species <- "Homo sapiens"
+      db_species <- "HS"
+    }
+    if(species == "mouse"){
+      species <- "Mus musculus"
+      db_species <- "MM"
+    }
+    db.format <- msigdbr::msigdbr(species, db_species, collection=category)
     #Subset subcategory if selected
     if(!is.null(subcategory)){
       #Check that subcategory exists in msigdb
       all_subcat <- msigdbr::msigdbr_collections() %>%
-        dplyr::pull(gs_subcat) %>% unique()
+        dplyr::pull(gs_subcollection) %>% unique()
       if(!subcategory %in% all_subcat){
         stop("Subcategory does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
       db.format <- db.format %>%
-        dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
+        dplyr::filter(grepl(paste0("^",subcategory), gs_subcollection))
     }
   } else if(!is.null(db)){
     db.format <- db %>%
-      dplyr::mutate(gs_cat = "custom", gs_subcat=NA)
+      dplyr::mutate(gs_collection = "custom", gs_subcollection=NA)
     #Name columns to match mgsibdbr
     colnames(db.format)[1] <- "gs_name"
     if(ID == "SYMBOL"){
@@ -86,13 +95,13 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
   #Get gene ID
   if(ID == "SYMBOL"){
     db.format2 <- db.format %>%
-      dplyr::select(gs_name, gene_symbol, gs_cat, gs_subcat)
+      dplyr::select(gs_name, gene_symbol, gs_collection, gs_subcollection)
   } else if(ID == "ENSEMBL"){
     db.format2 <- db.format %>%
-      dplyr::select(gs_name, ensembl_gene, gs_cat, gs_subcat)
+      dplyr::select(gs_name, ensembl_gene, gs_collection, gs_subcollection)
   } else if(ID == "ENTREZ"){
     db.format2 <- db.format %>%
-      dplyr::select(gs_name, entrez_gene, gs_cat, gs_subcat)
+      dplyr::select(gs_name, entrez_gene, gs_collection, gs_subcollection)
   } else{
     stop("Please like ID from SYMBOL, ENSEMBL, or ENTREZ.")
   }
@@ -136,20 +145,20 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
         if(!is.null(db)){
           result.clean <- data.frame(
             group=g,
-            gs_cat="custom",
+            gs_collection="custom",
             pathway="No enriched terms")
         } else{
           result.clean <- data.frame(
             group=g,
-            gs_cat=category,
-            gs_subcat=subcategory,
+            gs_collection=category,
+            gs_subcollection=subcategory,
             pathway="No enriched terms")
         }
 
       } else{
         #Format category labels
         db.species.clean <- db.format2 %>%
-          dplyr::distinct(gs_cat, gs_subcat, gs_name) %>%
+          dplyr::distinct(gs_collection, gs_subcollection, gs_name) %>%
           dplyr::rename(pathway=gs_name)
 
         #Format results
@@ -175,7 +184,7 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
           dplyr::mutate(group=g, size_group = length(gene_list_format[[g]])) %>%
           #Reorder variables
           dplyr::select(group, size_group,
-                        gs_cat, gs_subcat, size_cat.subcat,
+                        gs_collection, gs_subcollection, size_cat.subcat,
                         group_in_cat.subcat,
                         pathway, size_pathway, group_in_pathway, `k/K`,
                         pval, FDR, qvalue, genes) %>%
@@ -200,7 +209,7 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
     }else {
       all.results[[g]] <- tibble::tibble(
         group=g, size_group = length(gene_list_format[[g]]),
-        gs_cat=category, gs_subcat=subcategory,
+        gs_collection=category, gs_subcollection=subcategory,
         size_cat.subcat=NA, group_in_cat.subcat=0,
         pathway="No overlap of query genes and specified database.")
     }

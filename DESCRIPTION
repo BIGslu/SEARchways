@@ -16,7 +16,7 @@ Imports:
     fastmatch,
     magrittr,
     tidyr,
-    msigdbr,
+    msigdbr (>= 10.0.0),
     tibble,
     fgsea,
     clusterProfiler,

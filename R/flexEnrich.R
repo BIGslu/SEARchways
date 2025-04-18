@@ -23,7 +23,7 @@
 #' @examples
 #' gene_list <- list(HRV1 = names(example.gene.list[[1]]),
 #'                   HRV2 = names(example.gene.list[[2]]))
-#' flexEnrich(gene_list = gene_list, category = "H", ID = "ENSEMBL")
+#' flexEnrich(gene_list = gene_list, category = "H", ID = "ENSEMBL", species="human")
 
 flexEnrich <- function(gene_list = NULL,
                        gene_df = NULL,
@@ -39,7 +39,7 @@ flexEnrich <- function(gene_list = NULL,
                        maxGeneSetSize = 1e10,
                        print_genes = TRUE){
 
-  db_join <- pathway_GOID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_cat <- gs_subcat <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- NULL
+  db_join <- pathway_GOID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_collection <- gs_subcollection <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- db_species <- NULL
 
   ##### Database #####
   #Load gene ontology
@@ -47,11 +47,20 @@ flexEnrich <- function(gene_list = NULL,
   if(!is.null(category)){
     #Check that category exists in msigdb
     all_cat <- msigdbr::msigdbr_collections() %>%
-      dplyr::pull(gs_cat) %>% unique()
+      dplyr::pull(gs_collection) %>% unique()
     if(!category %in% all_cat){
       stop("Category does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
-    db.format <- msigdbr::msigdbr(species, category)
+    #Recode species
+    if(species == "human"){
+      species <- "Homo sapiens"
+      db_species <- "HS"
+    }
+    if(species == "mouse"){
+      species <- "Mus musculus"
+      db_species <- "MM"
+    }
+    db.format <- msigdbr::msigdbr(species, db_species, collection=category)
     # remove gene sets that are too small or too large
     good_pw <- db.format %>%
       dplyr::group_by(gs_name) %>%
@@ -65,16 +74,16 @@ flexEnrich <- function(gene_list = NULL,
     if(!is.null(subcategory)){
       #Check that subcategory exists in msigdb
       all_subcat <- msigdbr::msigdbr_collections() %>%
-        dplyr::pull(gs_subcat) %>% unique()
+        dplyr::pull(gs_subcollection) %>% unique()
       if(!subcategory %in% all_subcat){
         stop("Subcategory does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
       db.format <- db.format %>%
-        dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
+        dplyr::filter(grepl(paste0("^",subcategory), gs_subcollection))
     }
   } else if(!is.null(db)){
     db.format <- db %>%
-      dplyr::mutate(gs_cat = "custom", gs_subcat=NA)
+      dplyr::mutate(gs_collection = "custom", gs_subcollection=NA)
     #Name columns to match mgsibdbr
     colnames(db.format)[1] <- "gs_name"
     if(ID == "SYMBOL"){
@@ -103,15 +112,15 @@ flexEnrich <- function(gene_list = NULL,
   ##### Get gene ID #####
   if(ID == "SYMBOL"){
     db.format2 <- db.format %>%
-      dplyr::select(gs_name, gene_symbol, gs_cat, gs_subcat) %>%
+      dplyr::select(gs_name, gene_symbol, gs_collection, gs_subcollection) %>%
       dplyr::mutate(geneID = gene_symbol)
   } else if(ID == "ENSEMBL"){
     db.format2 <- db.format %>%
-      dplyr::select(gs_name, ensembl_gene, gs_cat, gs_subcat) %>%
+      dplyr::select(gs_name, ensembl_gene, gs_collection, gs_subcollection) %>%
       dplyr::mutate(geneID = ensembl_gene)
   } else if(ID == "ENTREZ"){
     db.format2 <- db.format %>%
-      dplyr::select(gs_name, entrez_gene, gs_cat, gs_subcat) %>%
+      dplyr::select(gs_name, entrez_gene, gs_collection, gs_subcollection) %>%
       dplyr::mutate(geneID = entrez_gene)
   } else{
     stop("Please use ID from SYMBOL, ENSEMBL, or ENTREZ.")
@@ -142,59 +151,59 @@ flexEnrich <- function(gene_list = NULL,
     }
     else{bg <- unique(custom_bg)}
   } else{
-    if(!species %in% c("mouse","human")){
+    if(!species %in% c("Mus musculus","Homo sapiens")){
       stop("Please enter either 'human' or 'mouse' for species.")
     } else {
       if(ID == "SYMBOL"){
         if(protein_coding == TRUE){
-          if(species == "human"){
+          if(species == "Homo sapiens"){
             bg <- symbol.human.db.pc
           }
-          else if(species == "mouse"){
+          else if(species == "Mus musculus"){
             bg <- symbol.mouse.db.pc
           }
         }
         else{
-          if(species == "human"){
+          if(species == "Homo sapiens"){
             bg <- symbol.human.db.full
           }
-          else if(species == "mouse"){
+          else if(species == "Mus musculus"){
             stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
           }
         }
       }
       else if(ID == "ENSEMBL"){
         if(protein_coding == TRUE){
-          if(species == "human"){
+          if(species == "Homo sapiens"){
             bg <- ensembl.human.db.pc
           }
-          else if(species == "mouse"){
+          else if(species == "Mus musculus"){
             bg <- ensembl.mouse.db.pc
           }
         }
         else{
-          if(species == "human"){
+          if(species == "Homo sapiens"){
             bg <- ensembl.human.db.full
           }
-          else if(species == "mouse"){
+          else if(species == "Mus musculus"){
             stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
           }
         }
       }
       else if(ID == "ENTREZ"){
         if(protein_coding == TRUE){
-          if(species == "human"){
+          if(species == "Homo sapiens"){
             bg <- entrez.human.db.pc
           }
-          else if(species == "mouse"){
+          else if(species == "Mus musculus"){
             bg <- entrez.mouse.db.pc
           }
         }
         else{
-          if(species == "human"){
+          if(species == "Homo sapiens"){
             bg <- entrez.human.db.full
           }
-          else if(species == "mouse"){
+          else if(species == "Mus musculus"){
             stop("At this time, only protein-coding backgrounds are available for mouse genes. Please use 'protein_coding = TRUE'.")
           }
         }
@@ -269,8 +278,8 @@ flexEnrich <- function(gene_list = NULL,
         "group" = rep(g, nrep),
         "n_query_genes" = rep(n_query_genes, nrep),
         "n_background_genes" = rep(n_background_genes, nrep),
-        "gs_cat" = rep(category, nrep),
-        "gs_subcat" = rep(subcategory, nrep),
+        "gs_collection" = rep(category, nrep),
+        "gs_subcollection" = rep(subcategory, nrep),
         "pathway" = set_names,
         "n_pathway_genes" = set_sizes,
         "n_query_genes_in_pathway" = overlaps,
@@ -316,8 +325,8 @@ flexEnrich <- function(gene_list = NULL,
         "group" = g,
         "n_query_genes" = n_query_genes,
         "n_background_genes" = n_background_genes,
-        "gs_cat" = category,
-        "gs_subcat" = subcategory,
+        "gs_collection" = category,
+        "gs_subcollection" = subcategory,
         "pathway" = "No overlap of query genes and specified database."
       )
     }

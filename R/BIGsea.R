@@ -67,7 +67,7 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
                    category = NULL, subcategory = NULL, pw = NULL, db = NULL,
                    minGeneSetSize = 10, maxGeneSetSize = 1e10,
                    processors = 1, ...){
-  gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- gs_name <- gs_cat <- gs_subcat <- padj <- pathway <- col1 <- NULL
+  gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- gs_name <- gs_collection <- gs_subcollection <- padj <- pathway <- col1 <- db_species <- NULL
 
   #Blank list to hold results
   all.results <- list()
@@ -77,25 +77,34 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
   if(!is.null(category)){
     #Check that category exists in msigdb
     all_cat <- msigdbr::msigdbr_collections() %>%
-      dplyr::pull(gs_cat) %>% unique()
+      dplyr::pull(gs_collection) %>% unique()
     if(!category %in% all_cat){
       stop("Category does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
-    db.format <- msigdbr::msigdbr(species, category)
+    #Recode species
+    if(species == "human"){
+      species <- "Homo sapiens"
+      db_species <- "HS"
+    }
+    if(species == "mouse"){
+      species <- "Mus musculus"
+      db_species <- "MM"
+    }
+    db.format <- msigdbr::msigdbr(species, db_species, collection=category)
     #Subset subcategory if selected
     if(!is.null(subcategory)){
       #Check that subcategory exists in msigdb
       all_subcat <- msigdbr::msigdbr_collections() %>%
-        dplyr::pull(gs_subcat) %>% unique()
+        dplyr::pull(gs_subcollection) %>% unique()
       if(!subcategory %in% all_subcat){
         stop("Subcategory does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
       db.format <- db.format %>%
-        dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
+        dplyr::filter(grepl(paste0("^",subcategory), gs_subcollection))
     }
   } else if(!is.null(db)){
     db.format <- db %>%
-      dplyr::mutate(gs_cat = "custom", gs_subcat=NA)
+      dplyr::mutate(gs_collection = "custom", gs_subcollection=NA)
     #Name columns to match mgsibdbr
     colnames(db.format)[1] <- "gs_name"
     if(ID == "SYMBOL"){
@@ -215,7 +224,7 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
         }
       } else {
         fg.result <- tibble::tibble(
-          group=g, gs_cat=category, gs_subcat=subcategory,
+          group=g, gs_collection=category, gs_subcollection=subcategory,
           pathway="No overlap of query genes and specified database.") }
       est.result <- NULL
     } else if(rand == "label"){
@@ -250,14 +259,14 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
         est.result <- label.result[["estimates"]]
       } else {
         all.results[[g]] <- tibble::tibble(
-          group=g, gs_cat=category, gs_subcat=subcategory,
+          group=g, gs_collection=category, gs_subcollection=subcategory,
           pathway="No overlap of query genes and specified database.") }
     } else{
       stop("rand must be set to one of multi, simple, or label") }
 
     fg.result <- fg.result %>%
       dplyr::rename(FDR=padj) %>%
-      dplyr::mutate(group=g, gs_cat=category, gs_subcat=subcategory, .before=1)
+      dplyr::mutate(group=g, gs_collection=category, gs_subcollection=subcategory, .before=1)
 
     # add GO term reference ID to results
     if(!is.null(category)){

@@ -60,7 +60,7 @@ iterEnrich <- function(anno_df = NULL,
                        maxGeneSetSize = 1e10,
                        print_genes = TRUE,
                        ncores = 1){
-  db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
+  db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_collection <- gs_subcollection <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- db_species <- NULL
 
   #Set colnames if not provided
   if(is.null(anno_featCol)) { anno_featCol <- colnames(anno_df[1])}
@@ -90,25 +90,35 @@ iterEnrich <- function(anno_df = NULL,
   if(!is.null(category)){
     #Check that category exists in msigdb
     all_cat <- msigdbr::msigdbr_collections() %>%
-      dplyr::pull(gs_cat) %>% unique()
+      dplyr::pull(gs_collection) %>% unique()
     if(!category %in% all_cat){
       stop("Category does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
-    db.format <- msigdbr::msigdbr(species, category)
+    #Recode species
+    species_og <- species
+    if(species == "human"){
+      species <- "Homo sapiens"
+      db_species <- "HS"
+    }
+    if(species == "mouse"){
+      species <- "Mus musculus"
+      db_species <- "MM"
+    }
+    db.format <- msigdbr::msigdbr(species, db_species, collection=category)
     #Subset subcategory if selected
     if(!is.null(subcategory)){
       #Check that subcategory exists in msigdb
       all_subcat <- msigdbr::msigdbr_collections() %>%
-        dplyr::pull(gs_subcat) %>% unique()
+        dplyr::pull(gs_subcollection) %>% unique()
       if(!subcategory %in% all_subcat){
         stop("Subcategory does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
       db.format <- db.format %>%
-        dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
+        dplyr::filter(grepl(paste0("^",subcategory), gs_subcollection))
     }
   } else if(!is.null(db)){
     db.format <- db %>%
-      dplyr::mutate(gs_cat = "custom", gs_subcat=NA)
+      dplyr::mutate(gs_collection = "custom", gs_subcollection=NA)
     #Name columns to match mgsibdbr
     colnames(db.format)[1] <- "gs_name"
     if(ID == "SYMBOL"){
@@ -173,7 +183,7 @@ iterEnrich <- function(anno_df = NULL,
     ### run enrichment on reduced gene list ###
     prof <- flexEnrich(gene_list = gl,
                        ID = ID,
-                       species = species,
+                       species = species_og,
                        category = category,
                        subcategory = subcategory,
                        db = db.enter,

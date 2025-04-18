@@ -60,6 +60,7 @@ iterEnrich <- function(anno_df = NULL,
                        maxGeneSetSize = 1e10,
                        print_genes = TRUE,
                        ncores = 1){
+
   db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_collection <- gs_subcollection <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- db_species <- NULL
 
   #Set colnames if not provided
@@ -196,9 +197,9 @@ iterEnrich <- function(anno_df = NULL,
 
     if(nrow(prof) > 0){
       prof2 <- prof %>%
-        dplyr::select(pathway, pvalue, n_query_genes_in_pathway, n_pathway_genes, `k/K`) %>%
-        dplyr::rename_with(~paste0("pvalue_", i),
-                           "pvalue",
+        dplyr::select(pathway, pval, n_query_genes_in_pathway, n_pathway_genes, `k/K`) %>%
+        dplyr::rename_with(~paste0("pval_", i),
+                           "pval",
                            recycle0 = TRUE) %>%
         dplyr::rename_with(~paste0("k_", i),
                            "n_query_genes_in_pathway",
@@ -243,17 +244,17 @@ iterEnrich <- function(anno_df = NULL,
 
   ###### Calculate summary ######
   #If any enrichment has results
-  if(any(!is.na(base_df[,grepl("pvalue",colnames(base_df))]))){
+  if(any(!is.na(base_df[,grepl("pval",colnames(base_df))]))){
     result_format <- base_df %>% dplyr::select(pathway)
 
-    for(dat in c("pvalue_","k_","K_","k/K_")){
+    for(dat in c("pval_","k_","K_","k/K_")){
       df_temp <- base_df %>%
         dplyr::select(pathway, dplyr::starts_with(dat, ignore.case = FALSE))
       # remove rows with all NA values (no enrichment in any iteration)
       df_temp <- df_temp[rowSums(is.na(df_temp[2:ncol(df_temp)])) != (ncol(df_temp)-1), ]
 
-      if(dat %in% c("pvalue_","k_","k/K_")){
-        if(dat %in% c("pvalue_")){
+      if(dat %in% c("pval_","k_","k/K_")){
+        if(dat %in% c("pval_")){
           # Fill is NA
           df_fill <- replace(df_temp, is.na(df_temp),  1)
           results[["p_iterations"]] <- df_fill
@@ -355,7 +356,7 @@ iterEnrich <- function(anno_df = NULL,
     genes_overlap_df <- dplyr::tibble("pathway" = unique(results_df_summary$pathway),
                                       "genes" = genes_overlap)
     results_df_summary <- results_df_summary %>%
-      dplyr::left_join(genes_overlap_df)
+      dplyr::left_join(genes_overlap_df, by = dplyr::join_by(pathway))
   }
 
 

@@ -168,10 +168,10 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
           dplyr::rename(pathway=Description, FDR=p.adjust, pval=pvalue) %>%
           dplyr::mutate(genes = strsplit(geneID, split="/")) %>%
           #Extract values from ratios
-          tidyr::separate(BgRatio, into=c("size_pathway","size_cat.subcat"), sep="/") %>%
-          tidyr::separate(GeneRatio, into=c("group_in_pathway",
+          tidyr::separate_wider_delim(BgRatio, names=c("size_pathway","size_cat.subcat"), delim="/") %>%
+          tidyr::separate_wider_delim(GeneRatio, names=c("group_in_pathway",
                                             "group_in_cat.subcat"),
-                          sep="/") %>%
+                          delim="/") %>%
           dplyr::mutate_at(dplyr::vars("size_pathway","size_cat.subcat",
                                        "group_in_pathway","group_in_cat.subcat"),
                            as.numeric) %>%

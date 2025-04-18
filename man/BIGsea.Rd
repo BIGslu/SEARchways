@@ -93,7 +93,8 @@ test <- BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
        rand="label", rand_var="virus",
        model="~virus+median_cv_coverage",
        run_lm=TRUE, use_weights=TRUE,
-       nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"))
+       nperm=2, pw=c("REACTOME_POST_TRANSLATIONAL_PROTEIN_MODIFICATION"),
+       processors=2)
 
 #Use pre-calculated random estimates
 BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",

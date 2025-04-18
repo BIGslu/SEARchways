@@ -284,7 +284,7 @@ flexEnrich <- function(gene_list = NULL,
         "n_pathway_genes" = set_sizes,
         "n_query_genes_in_pathway" = overlaps,
         "k/K" = kK_ratios,
-        "pvalue" = pvals #,
+        "pval" = pvals #,
         #     "genes" = genes_in_overlap
       )
 
@@ -300,12 +300,12 @@ flexEnrich <- function(gene_list = NULL,
         dplyr::filter(n_pathway_genes >= minGeneSetSize,
                       n_pathway_genes <= maxGeneSetSize,
                       n_query_genes_in_pathway >= minOverlap,
-                      !is.na(pvalue))
+                      !is.na(pval))
 
 
-      res.temp$FDR <- stats::p.adjust(res.temp$pvalue, method = "fdr")
+      res.temp$FDR <- stats::p.adjust(res.temp$pval, method = "fdr")
       res.temp <- res.temp %>%
-        dplyr::relocate(FDR, .after = pvalue)
+        dplyr::relocate(FDR, .after = pval)
 
       if(!is.null(category)){
         if(category == "C5"){

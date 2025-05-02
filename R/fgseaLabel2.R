@@ -33,7 +33,7 @@ fgseaLabel2 <- function(pathways, dat, label,
                         gseaParam=1,
                         BPPARAM=NULL,
                         estimates=NULL, ...) {
-  g <- category <- subcategory <- gene <- variable <- estimate <- NULL
+  g <- collection <- subcollection <- gene <- variable <- estimate <- NULL
 
   # Define minimum pathway size at least 1
   minSize <- max(minSize, 1)
@@ -51,7 +51,7 @@ fgseaLabel2 <- function(pathways, dat, label,
   # Empty result if no genes in pass filter pathways
   if (m == 0) {
     return(tibble::tibble(
-      group=g, gs_cat=category, gs_subcat=subcategory,
+      group=g, gs_collection=collection, gs_subcollection=subcollection,
       pathway="No overlap of query genes and specified database."))
   }
 

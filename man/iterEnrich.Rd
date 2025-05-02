@@ -12,8 +12,8 @@ iterEnrich(
   p_adjust = "fdr",
   ID = "SYMBOL",
   species = "human",
-  category = NULL,
-  subcategory = NULL,
+  collection = NULL,
+  subcollection = NULL,
   db = NULL,
   custom_bg = NULL,
   protein_coding = TRUE,
@@ -39,9 +39,9 @@ iterEnrich(
 
 \item{species}{Character string denoting species of interest. "human" or "mouse." Default is "human"}
 
-\item{category}{Character string denoting Broad gene set database}
+\item{collection}{Character string denoting Broad gene set database}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/}
+\item{subcollection}{Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/}
 
 \item{db}{If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your anno_df annotations)}
 
@@ -80,7 +80,7 @@ iterEnrich(anno_df = df,
            anno_featCol = "feat",
            anno_annotationCol = "annotation",
            niter = 3, ID = "ENSEMBL",
-           category = "H")
+           collection = "H")
 }
 \author{
 Madison Cox

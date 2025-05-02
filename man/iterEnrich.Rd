@@ -21,7 +21,9 @@ iterEnrich(
   minGeneSetSize = 10,
   maxGeneSetSize = 1e+10,
   print_genes = TRUE,
-  ncores = 1
+  ncores = 1,
+  category = NULL,
+  subcategory = NULL
 )
 }
 \arguments{

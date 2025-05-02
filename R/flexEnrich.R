@@ -37,9 +37,13 @@ flexEnrich <- function(gene_list = NULL,
                        minOverlap = 1,
                        minGeneSetSize = 10,
                        maxGeneSetSize = 1e10,
-                       print_genes = TRUE){
+                       print_genes = TRUE,
+                       category = NULL,
+                       subcategory = NULL){
 
   db_join <- pathway_GOID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_collection <- gs_subcollection <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- pval <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- db_species <- NULL
+
+  if(!is.null(category)){stop("category is deprecated. Please use collection.")}
 
   ##### Database #####
   #Load gene ontology

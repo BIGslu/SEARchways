@@ -67,8 +67,12 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
                    species="human", ID="SYMBOL",
                    collection = NULL, subcollection = NULL, pw = NULL, db = NULL,
                    minGeneSetSize = 10, maxGeneSetSize = 1e10,
-                   processors = 1, ...){
+                   processors = 1,
+                   category = NULL,
+                   subcategory = NULL, ...){
   gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- gs_name <- gs_collection <- gs_subcollection <- padj <- pathway <- col1 <- db_species <- NULL
+
+  if(!is.null(category)){stop("category is deprecated. Please use collection.")}
 
   #Blank list to hold results
   all.results <- list()

@@ -17,7 +17,9 @@ flexEnrich(
   minOverlap = 1,
   minGeneSetSize = 10,
   maxGeneSetSize = 1e+10,
-  print_genes = TRUE
+  print_genes = TRUE,
+  category = NULL,
+  subcategory = NULL
 )
 }
 \arguments{

@@ -41,8 +41,12 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
                         collection = NULL, subcollection = NULL,
                         db = NULL,
                         minGSSize = 10,
-                        maxGSSize = 500){
+                        maxGSSize = 500,
+                        category = NULL,
+                        subcategory = NULL){
   db_join <- pathway_GOID <- gs_exact_source <- BgRatio <- Description <- FDR <- GeneRatio <- ensembl_gene <- entrez_gene <- geneID <- gene_symbol <- genes <- group <- n_query_genes_in_pathway <- gs_collection <- gs_name <- gs_subcollection <- `k/K` <- p.adjust <- pathway <- pval <- pvalue <- qvalue <- n_background_genes <- n_query_genes <- n_pathway_genes <- gene_list_overlap <- db_species <- NULL
+
+  if(!is.null(category)){stop("category is deprecated. Please use collection.")}
 
   ##### Database #####
   #Load gene ontology

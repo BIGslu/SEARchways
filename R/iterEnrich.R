@@ -59,9 +59,13 @@ iterEnrich <- function(anno_df = NULL,
                        minGeneSetSize = 10,
                        maxGeneSetSize = 1e10,
                        print_genes = TRUE,
-                       ncores = 1){
+                       ncores = 1,
+                       category = NULL,
+                       subcategory = NULL){
 
   db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_collection <- gs_subcollection <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- pval <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- db_species <- NULL
+
+  if(!is.null(category)){stop("category is deprecated. Please use collection.")}
 
   #Set colnames if not provided
   if(is.null(anno_featCol)) { anno_featCol <- colnames(anno_df[1])}

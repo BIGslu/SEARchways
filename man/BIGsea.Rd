@@ -21,6 +21,8 @@ BIGsea(
   minGeneSetSize = 10,
   maxGeneSetSize = 1e+10,
   processors = 1,
+  category = NULL,
+  subcategory = NULL,
   ...
 )
 }

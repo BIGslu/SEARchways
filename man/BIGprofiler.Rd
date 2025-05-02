@@ -13,7 +13,9 @@ BIGprofiler(
   subcollection = NULL,
   db = NULL,
   minGSSize = 10,
-  maxGSSize = 500
+  maxGSSize = 500,
+  category = NULL,
+  subcategory = NULL
 )
 }
 \arguments{

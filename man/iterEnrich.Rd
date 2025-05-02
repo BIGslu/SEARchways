@@ -60,6 +60,10 @@ iterEnrich(
 \item{print_genes}{Logical. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is FALSE. Setting this parameter as TRUE will make the function run slowly for very large datasets.}
 
 \item{ncores}{Number of cores for parallel processing. Default is 1}
+
+\item{category}{Deprecated}
+
+\item{subcategory}{Deprecated}
 }
 \value{
 List of data frames includings

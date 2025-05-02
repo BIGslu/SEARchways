@@ -20,6 +20,8 @@
 #' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10
 #' @param print_genes Logical. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is FALSE. Setting this parameter as TRUE will make the function run slowly for very large datasets.
 #' @param ncores Number of cores for parallel processing. Default is 1
+#' @param category Deprecated
+#' @param subcategory Deprecated
 #' @author Madison Cox
 #'
 #' @return List of data frames includings

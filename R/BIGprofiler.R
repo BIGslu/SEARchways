@@ -13,7 +13,8 @@
 #'   size). Default \code{10}. See [clusterProfiler::enricher()]
 #' @param maxGSSize Numeric. Maximum size of genes annotated for testing (maximum pathway
 #'   size). Default \code{500}. See [clusterProfiler::enricher()]
-#'
+#' @param category Deprecated
+#' @param subcategory Deprecated
 #' @return Data frame of enrichments including pathway, significance, and genes
 #'   in pathway
 #' @export

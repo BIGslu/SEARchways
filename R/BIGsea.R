@@ -16,6 +16,8 @@
 #' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.
 #' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10
 #' @param processors Numeric total processors to use. Default is 1
+#' @param category Deprecated
+#' @param subcategory Deprecated
 #' @param ... Additional parameters for kimma::kmFit needed if rand = "label"
 #'
 #' @return Data frame of enrichments including pathway, significance, and leading edge genes

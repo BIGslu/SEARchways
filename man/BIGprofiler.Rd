@@ -40,6 +40,10 @@ size). Default \code{10}. See \code{\link[clusterProfiler:enricher]{clusterProfi
 
 \item{maxGSSize}{Numeric. Maximum size of genes annotated for testing (maximum pathway
 size). Default \code{500}. See \code{\link[clusterProfiler:enricher]{clusterProfiler::enricher()}}}
+
+\item{category}{Deprecated}
+
+\item{subcategory}{Deprecated}
 }
 \value{
 Data frame of enrichments including pathway, significance, and genes

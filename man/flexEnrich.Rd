@@ -48,6 +48,10 @@ flexEnrich(
 \item{maxGeneSetSize}{Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10}
 
 \item{print_genes}{TRUE or FALSE. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is TRUE. Leaving this parameter as TRUE will make the function run slowly for very large datasets.}
+
+\item{category}{Deprecated}
+
+\item{subcategory}{Deprecated}
 }
 \value{
 Data frame enrichments including pathway, significance, and k/K ratios

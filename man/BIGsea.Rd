@@ -59,6 +59,10 @@ BIGsea(
 
 \item{processors}{Numeric total processors to use. Default is 1}
 
+\item{category}{Deprecated}
+
+\item{subcategory}{Deprecated}
+
 \item{...}{Additional parameters for kimma::kmFit needed if rand = "label"}
 }
 \value{

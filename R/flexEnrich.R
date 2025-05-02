@@ -15,6 +15,8 @@
 #' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.
 #' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10
 #' @param print_genes TRUE or FALSE. Do you want the results to include a list of genes that overlap between any given gene set and your query genes. Default is TRUE. Leaving this parameter as TRUE will make the function run slowly for very large datasets.
+#' @param category Deprecated
+#' @param subcategory Deprecated
 #' @author Madison Cox
 #'
 #' @return Data frame enrichments including pathway, significance, and k/K ratios

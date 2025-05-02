@@ -14,8 +14,8 @@ BIGsea(
   rand_est = NULL,
   species = "human",
   ID = "SYMBOL",
-  category = NULL,
-  subcategory = NULL,
+  collection = NULL,
+  subcollection = NULL,
   pw = NULL,
   db = NULL,
   minGeneSetSize = 10,
@@ -43,11 +43,11 @@ BIGsea(
 
 \item{ID}{Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"}
 
-\item{category}{Character string denoting Broad gene set database}
+\item{collection}{Character string denoting Broad gene set database}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/}
+\item{subcollection}{Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/}
 
-\item{pw}{Character vector of pathway names to include. Must still provide category/subcategory. Format must exact match database such as HALLMARK_INTERFERON_GAMMA_RESPONSE}
+\item{pw}{Character vector of pathway names to include. Must still provide collection/subcollection. Format must exact match database such as HALLMARK_INTERFERON_GAMMA_RESPONSE}
 
 \item{db}{If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
 
@@ -66,8 +66,8 @@ Data frame of enrichments including pathway, significance, and leading edge gene
 Run gene set enrichment analysis (GSEA) on multiple list using fgsea. More information about GSEA and geneset databases check https://www.gsea-msigdb.org/gsea/msigdb
 }
 \examples{
-BIGsea(example.gene.list, category="H", ID="ENSEMBL") #no result
-BIGsea(example.gene.list, category="C2", subcategory="CP", ID="ENSEMBL")
+BIGsea(example.gene.list, collection="H", ID="ENSEMBL") #no result
+BIGsea(example.gene.list, collection="C2", subcollection="CP", ID="ENSEMBL")
 
 #Use gene_df. No overlap message
 gene_df <- data.frame(gs_name = c("HRV1", rep("HRV2",100)),
@@ -75,7 +75,7 @@ gene_df <- data.frame(gs_name = c("HRV1", rep("HRV2",100)),
                                names(example.gene.list[[2]])),
                      logFC = c(example.gene.list[[1]][1],
                                example.gene.list[[2]]))
-BIGsea(gene_df=gene_df, category="C2", subcategory="CP", ID="ENSEMBL",
+BIGsea(gene_df=gene_df, collection="C2", subcollection="CP", ID="ENSEMBL",
        rand="simple")
 
 #Use custom data base
@@ -89,7 +89,7 @@ gene_df <- data.frame(gs_name = rep("virus",100),
                      logFC = c(example.gene.list[[2]]))
 example.voom <- kimma::example.voom
 test <- BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
-       category="C2", subcategory="CP",
+       collection="C2", subcollection="CP",
        rand="label", rand_var="virus",
        model="~virus+median_cv_coverage",
        run_lm=TRUE, use_weights=TRUE,
@@ -98,7 +98,7 @@ test <- BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
 
 #Use pre-calculated random estimates
 BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
-       category="C2", subcategory="CP",
+       collection="C2", subcollection="CP",
        rand="label", rand_var="virus", rand_est=test[['estimates']],
        model="~virus+median_cv_coverage",
        run_lm=TRUE, use_weights=TRUE,

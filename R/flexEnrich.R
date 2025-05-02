@@ -39,7 +39,7 @@ flexEnrich <- function(gene_list = NULL,
                        maxGeneSetSize = 1e10,
                        print_genes = TRUE){
 
-  db_join <- pathway_GOID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_collection <- gs_subcollection <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- db_species <- NULL
+  db_join <- pathway_GOID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_collection <- gs_subcollection <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- pval <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- db_species <- NULL
 
   ##### Database #####
   #Load gene ontology

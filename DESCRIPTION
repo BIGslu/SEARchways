@@ -1,6 +1,6 @@
 Package: SEARchways
 Title: One place for GSEA and functional enrichment
-Version: 1.4.0
+Version: 1.5.0
 Authors@R: 
 	c(person("Basilin", "Benson",email ="basilinb@uw.edu", role = c("aut", "cre")),
 	  person("Kim", "Dill-McFarland",email ="kadm@uw.edu", role = c("aut")),

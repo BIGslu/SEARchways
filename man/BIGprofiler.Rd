@@ -9,8 +9,8 @@ BIGprofiler(
   gene_df = NULL,
   ID = "SYMBOL",
   species = "human",
-  category = NULL,
-  subcategory = NULL,
+  collection = NULL,
+  subcollection = NULL,
   db = NULL,
   minGSSize = 10,
   maxGSSize = 500
@@ -25,9 +25,9 @@ BIGprofiler(
 
 \item{species}{Character string denoting species of interest. Default is human}
 
-\item{category}{Character string denoting Broad gene set database. See https://www.gsea-msigdb.org/gsea/msigdb/}
+\item{collection}{Character string denoting Broad gene set database. See https://www.gsea-msigdb.org/gsea/msigdb/}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/}
+\item{subcollection}{Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/}
 
 \item{db}{If not using Broad databases, a data frame with gene ontology
 including gene set name (column 1: gs_name) and gene ID (column2:
@@ -50,13 +50,13 @@ clusterProfiler of significant genes in Broad gene sets
 #Get gene names for enrichment
 gene_list <- list(HRV1 = "notReal",
                   HRV2 = names(example.gene.list[[2]]))
-BIGprofiler(gene_list, ID="ENSEMBL", category="H")
+BIGprofiler(gene_list, ID="ENSEMBL", collection="H")
 
 # Use gene_df
 gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
                       gene = c(names(example.gene.list[[1]]),
                                names(example.gene.list[[2]])))
-BIGprofiler(gene_df=gene_df, ID="ENSEMBL", category="H")
+BIGprofiler(gene_df=gene_df, ID="ENSEMBL", collection="H")
 
 #Use custom data base
 db <- data.frame(module = c(rep("module1",10), rep("module2",10)),

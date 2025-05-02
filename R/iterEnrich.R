@@ -61,7 +61,7 @@ iterEnrich <- function(anno_df = NULL,
                        print_genes = TRUE,
                        ncores = 1){
 
-  db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_collection <- gs_subcollection <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- db_species <- NULL
+  db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_collection <- gs_subcollection <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- pval <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- db_species <- NULL
 
   #Set colnames if not provided
   if(is.null(anno_featCol)) { anno_featCol <- colnames(anno_df[1])}

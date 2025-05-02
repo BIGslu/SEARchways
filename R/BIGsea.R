@@ -9,9 +9,9 @@
 #' @param rand_est Data frame with random variable estimates. From prior run of BIGsea in the estimates slot
 #' @param nperm Numeric permutations for P-value calculations. Default is 1000
 #' @param species Character string denoting species of interest. Default is "human"
-#' @param category Character string denoting Broad gene set database
-#' @param subcategory Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/
-#' @param pw Character vector of pathway names to include. Must still provide category/subcategory. Format must exact match database such as HALLMARK_INTERFERON_GAMMA_RESPONSE
+#' @param collection Character string denoting Broad gene set database
+#' @param subcollection Character string denoting Broad gene set sub-database. See https://www.gsea-msigdb.org/gsea/msigdb/
+#' @param pw Character vector of pathway names to include. Must still provide collection/subcollection. Format must exact match database such as HALLMARK_INTERFERON_GAMMA_RESPONSE
 #' @param db If not using Broad databases, a data frame with gene ontology including gene set name (column 1: gs_name) and gene ID (column2: gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)
 #' @param minGeneSetSize Maximum overlap between a gene set and your list of query genes for hypergeometric enrichment to be calculated. Default is 10.
 #' @param maxGeneSetSize Maximum size of a reference gene set for hypergeometric enrichment to be calculated. Default is 1e10
@@ -22,8 +22,8 @@
 #' @export
 #'
 #' @examples
-#' BIGsea(example.gene.list, category="H", ID="ENSEMBL") #no result
-#' BIGsea(example.gene.list, category="C2", subcategory="CP", ID="ENSEMBL")
+#' BIGsea(example.gene.list, collection="H", ID="ENSEMBL") #no result
+#' BIGsea(example.gene.list, collection="C2", subcollection="CP", ID="ENSEMBL")
 #'
 #' #Use gene_df. No overlap message
 #' gene_df <- data.frame(gs_name = c("HRV1", rep("HRV2",100)),
@@ -31,7 +31,7 @@
 #'                                names(example.gene.list[[2]])),
 #'                      logFC = c(example.gene.list[[1]][1],
 #'                                example.gene.list[[2]]))
-#' BIGsea(gene_df=gene_df, category="C2", subcategory="CP", ID="ENSEMBL",
+#' BIGsea(gene_df=gene_df, collection="C2", subcollection="CP", ID="ENSEMBL",
 #'        rand="simple")
 #'
 #' #Use custom data base
@@ -45,7 +45,7 @@
 #'                      logFC = c(example.gene.list[[2]]))
 #' example.voom <- kimma::example.voom
 #' test <- BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
-#'        category="C2", subcategory="CP",
+#'        collection="C2", subcollection="CP",
 #'        rand="label", rand_var="virus",
 #'        model="~virus+median_cv_coverage",
 #'        run_lm=TRUE, use_weights=TRUE,
@@ -54,7 +54,7 @@
 #'
 #' #Use pre-calculated random estimates
 #' BIGsea(gene_df = gene_df, dat=example.voom, ID="ENSEMBL",
-#'        category="C2", subcategory="CP",
+#'        collection="C2", subcollection="CP",
 #'        rand="label", rand_var="virus", rand_est=test[['estimates']],
 #'        model="~virus+median_cv_coverage",
 #'        run_lm=TRUE, use_weights=TRUE,
@@ -65,7 +65,7 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
                    rand="multi", nperm=1000,
                    rand_var=NULL, rand_est=NULL,
                    species="human", ID="SYMBOL",
-                   category = NULL, subcategory = NULL, pw = NULL, db = NULL,
+                   collection = NULL, subcollection = NULL, pw = NULL, db = NULL,
                    minGeneSetSize = 10, maxGeneSetSize = 1e10,
                    processors = 1, ...){
   gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- gs_name <- gs_collection <- gs_subcollection <- padj <- pathway <- col1 <- db_species <- NULL
@@ -75,12 +75,12 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
 
   #### Database ####
   #Load gene ontology
-  if(!is.null(category)){
-    #Check that category exists in msigdb
+  if(!is.null(collection)){
+    #Check that collection exists in msigdb
     all_cat <- msigdbr::msigdbr_collections() %>%
       dplyr::pull(gs_collection) %>% unique()
-    if(!category %in% all_cat){
-      stop("Category does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+    if(!collection %in% all_cat){
+      stop("collection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
     #Recode species
     if(species == "human"){
@@ -91,17 +91,17 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
       species <- "Mus musculus"
       db_species <- "MM"
     }
-    db.format <- msigdbr::msigdbr(species, db_species, collection=category)
-    #Subset subcategory if selected
-    if(!is.null(subcategory)){
-      #Check that subcategory exists in msigdb
+    db.format <- msigdbr::msigdbr(species, db_species, collection=collection)
+    #Subset subcollection if selected
+    if(!is.null(subcollection)){
+      #Check that subcollection exists in msigdb
       all_subcat <- msigdbr::msigdbr_collections() %>%
         dplyr::pull(gs_subcollection) %>% unique()
-      if(!subcategory %in% all_subcat){
-        stop("Subcategory does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+      if(!subcollection %in% all_subcat){
+        stop("Subcollection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
 
       db.format <- db.format %>%
-        dplyr::filter(grepl(paste0("^",subcategory), gs_subcollection))
+        dplyr::filter(grepl(paste0("^",subcollection), gs_subcollection))
     }
   } else if(!is.null(db)){
     db.format <- db %>%
@@ -118,7 +118,7 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
       stop("Please like ID from SYMBOL, ENSEMBL, or ENTREZ.")
     }
   } else {
-    stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
+    stop("Please provide gene set information as Broad collection/subcollection or in a data frame as db.")
   }
 
   #Filter select pathways
@@ -225,7 +225,7 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
         }
       } else {
         fg.result <- tibble::tibble(
-          group=g, gs_collection=category, gs_subcollection=subcategory,
+          group=g, gs_collection=collection, gs_subcollection=subcollection,
           pathway="No overlap of query genes and specified database.") }
       est.result <- NULL
     } else if(rand == "label"){
@@ -260,18 +260,18 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
         est.result <- label.result[["estimates"]]
       } else {
         all.results[[g]] <- tibble::tibble(
-          group=g, gs_collection=category, gs_subcollection=subcategory,
+          group=g, gs_collection=collection, gs_subcollection=subcollection,
           pathway="No overlap of query genes and specified database.") }
     } else{
       stop("rand must be set to one of multi, simple, or label") }
 
     fg.result <- fg.result %>%
       dplyr::rename(FDR=padj) %>%
-      dplyr::mutate(group=g, gs_collection=category, gs_subcollection=subcategory, .before=1)
+      dplyr::mutate(group=g, gs_collection=collection, gs_subcollection=subcollection, .before=1)
 
     # add GO term reference ID to results
-    if(!is.null(category)){
-      if(category == "C5"){
+    if(!is.null(collection)){
+      if(collection == "C5"){
         db_join <- db.format %>%
           dplyr::select(c("gs_name", "gs_exact_source")) %>%
           dplyr::distinct()

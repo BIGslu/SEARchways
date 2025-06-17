@@ -66,6 +66,16 @@ flexEnrich <- function(gene_list = NULL,
       }
     }
   } else if(!is.null(db)){
+
+    #Recode species
+    if(species == "human"){
+      species <- "Homo sapiens"
+      db_species <- "HS"
+    }
+    if(species == "mouse"){
+      species <- "Mus musculus"
+      db_species <- "MM"
+    }
     db.format <- db %>%
       dplyr::mutate(gs_cat = "custom", gs_subcat=NA)
     #Name columns to match mgsibdbr

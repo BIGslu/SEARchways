@@ -6,8 +6,8 @@
 #' @param gene_df Data frame including variable/module groups (column 1: group), and gene name (column2: gene). Can be used instead of gene_list
 #' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
 #' @param species Character string denoting species of interest. "human" or "mouse" Default is "human"
-#' @param category Character string denoting Broad gene set database
-#' @param subcategory Character string denoting Broad gene set sub-database
+#' @param collection Character string denoting Broad gene set database
+#' @param subcollection Character string denoting Broad gene set sub-database
 #' @param db Custom database
 #' @param custom_bg Custom background. Formatted as a vector of gene IDs.
 #' @param protein_coding TRUE or FALSE: do you want to limit the background to only protein-coding genes? Default is TRUE
@@ -23,14 +23,14 @@
 #' @examples
 #' gene_list <- list(HRV1 = names(example.gene.list[[1]]),
 #'                   HRV2 = names(example.gene.list[[2]]))
-#' flexEnrich(gene_list = gene_list, category = "H", ID = "ENSEMBL")
+#' flexEnrich(gene_list = gene_list, collection = "H", ID = "ENSEMBL")
 
 flexEnrich <- function(gene_list = NULL,
                        gene_df = NULL,
                        ID = "SYMBOL",
                        species = "human",
-                       category = NULL,
-                       subcategory = NULL,
+                       collection = NULL,
+                       subcollection = NULL,
                        db = NULL,
                        custom_bg = NULL,
                        protein_coding = TRUE,
@@ -39,13 +39,24 @@ flexEnrich <- function(gene_list = NULL,
                        maxGeneSetSize = 1e10,
                        print_genes = TRUE){
 
-  db_join <- pathway_GOID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_cat <- gs_subcat <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- NULL
+  db_join <- pathway_GOID <- gs_exact_source <- FDR <- gs_name <- n <- db.format <- group <- n_query_genes <- n_background_genes <- gs_collection <- gs_subcollection <- pathway <- n_pathway_genes <- n_query_genes_in_pathway <- `k/K` <- pvalue <- genes <- ensembl_gene <-  gene_symbol <- entrez_gene <- geneID <- NULL
 
   ##### Database #####
   #Load gene ontology
 
-  if(!is.null(category)){
-    db.format <- msigdbr::msigdbr(species, category)
+  if(!is.null(collection)){
+
+    #Recode species
+    if(species %in% c("human", "Homo sapiens", "HS")){
+      db_species <- "HS"
+      species <- "human"
+    }
+    if(species %in% c("mouse", "Mus musculus", "MM")){
+      db_species <- "MM"
+      species = "mouse"
+    }
+
+    db.format <- msigdbr::msigdbr(collection = collection, species = species, db_species = db_species)
     # remove gene sets that are too small or too large
     good_pw <- db.format %>%
       dplyr::group_by(gs_name) %>%
@@ -55,29 +66,30 @@ flexEnrich <- function(gene_list = NULL,
       dplyr::pull(gs_name)
     db.format <- db.format %>%
       dplyr::filter(gs_name %in% good_pw)
-    #Subset subcategory if selected
-    if(!is.null(subcategory)){
-      if(length(db.format$gs_subcat[which(db.format$gs_subcat == subcategory)]) == 0){
-        stop("Entered subcategory does not exist in MSigDB")
+    #Subset subcollection if selected
+    if(!is.null(subcollection)){
+      if(length(db.format$gs_subcollection[which(db.format$gs_subcollection == subcollection)]) == 0){
+        stop("Entered subcollection does not exist in MSigDB")
       }
       else{
         db.format <- db.format %>%
-          dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
+          dplyr::filter(grepl(paste0("^",subcollection), gs_subcollection))
       }
     }
   } else if(!is.null(db)){
 
     #Recode species
-    if(species == "human"){
-      species <- "Homo sapiens"
+    if(species %in% c("human", "Homo sapiens", "HS")){
       db_species <- "HS"
+      species <- "human"
     }
-    if(species == "mouse"){
-      species <- "Mus musculus"
+    if(species %in% c("mouse", "Mus musculus", "MM")){
       db_species <- "MM"
+      species = "mouse"
     }
+
     db.format <- db %>%
-      dplyr::mutate(gs_cat = "custom", gs_subcat=NA)
+      dplyr::mutate(gs_collection = "custom", gs_subcollection=NA)
     #Name columns to match mgsibdbr
     colnames(db.format)[1] <- "gs_name"
     if(ID == "SYMBOL"){
@@ -100,22 +112,22 @@ flexEnrich <- function(gene_list = NULL,
     db.format <- db.format %>%
       dplyr::filter(gs_name %in% good_pw)
   } else {
-    stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
+    stop("Please provide gene set information as Broad collection/subcollection or in a data frame as db.")
   }
 
 
   ##### Get gene ID #####
   if(ID == "SYMBOL"){
     db.format2 <- db.format %>%
-      dplyr::select(gs_name, gene_symbol, gs_cat, gs_subcat) %>%
+      dplyr::select(gs_name, gene_symbol, gs_collection, gs_subcollection) %>%
       dplyr::mutate(geneID = gene_symbol)
   } else if(ID == "ENSEMBL"){
     db.format2 <- db.format %>%
-      dplyr::select(gs_name, ensembl_gene, gs_cat, gs_subcat) %>%
+      dplyr::select(gs_name, ensembl_gene, gs_collection, gs_subcollection) %>%
       dplyr::mutate(geneID = ensembl_gene)
   } else if(ID == "ENTREZ"){
     db.format2 <- db.format %>%
-      dplyr::select(gs_name, entrez_gene, gs_cat, gs_subcat) %>%
+      dplyr::select(gs_name, entrez_gene, gs_collection, gs_subcollection) %>%
       dplyr::mutate(geneID = entrez_gene)
   } else{
     stop("Please use ID from SYMBOL, ENSEMBL, or ENTREZ.")
@@ -272,8 +284,8 @@ flexEnrich <- function(gene_list = NULL,
     res.temp <- tibble::tibble("group" = rep(g, nrep),
                                "n_query_genes" = rep(n_query_genes, nrep),
                                "n_background_genes" = rep(n_background_genes, nrep),
-                               "gs_cat" = rep(category, nrep),
-                               "gs_subcat" = rep(subcategory, nrep),
+                               "gs_collection" = rep(collection, nrep),
+                               "gs_subcollection" = rep(subcollection, nrep),
                                "pathway" = set_names,
                                "n_pathway_genes" = set_sizes,
                                "n_query_genes_in_pathway" = overlaps,
@@ -301,8 +313,8 @@ flexEnrich <- function(gene_list = NULL,
     res.temp <- res.temp %>%
       dplyr::relocate(FDR, .after = pvalue)
 
-    if(!is.null(category)){
-      if(category == "C5"){
+    if(!is.null(collection)){
+      if(collection == "C5"){
         db_join <- db.format %>%
           dplyr::select(c("gs_name", "gs_exact_source")) %>%
           dplyr::distinct()

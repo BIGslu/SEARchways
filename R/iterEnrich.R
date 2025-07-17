@@ -10,10 +10,10 @@
 #' @param p_adjust Character string. Method for p-value adjustment from p.adjust.methods(). Default is "fdr"
 #' @param ID Character string. Type of gene annotation used in anno_df. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
 #' @param species Character string denoting species of interest. "human" or "mouse." Default is "human"
-#' @param category Character string denoting Broad gene set database
-#' @param subcategory Character string denoting Broad gene set sub-database
+#' @param collection Character string denoting Broad gene set database
+#' @param subcollection Character string denoting Broad gene set sub-database
 #' \tabular{rrrrr}{
-#'  \strong{category} \tab    \strong{subcategory}\cr
+#'  \strong{collection} \tab    \strong{subcollection}\cr
 #'  C1  \tab      \cr
 #'  C2  \tab      CGP\cr
 #'  C2  \tab      CP\cr
@@ -59,7 +59,7 @@
 #'            anno_featCol = "feat",
 #'            anno_annotationCol = "annotation",
 #'            niter = 3, ID = "ENSEMBL",
-#'            category = "H")
+#'            collection = "H")
 
 iterEnrich <- function(anno_df = NULL,
                        anno_featCol = NULL,
@@ -68,8 +68,8 @@ iterEnrich <- function(anno_df = NULL,
                        p_adjust = "fdr",
                        ID = "SYMBOL",
                        species = "human",
-                       category = NULL,
-                       subcategory = NULL,
+                       collection = NULL,
+                       subcollection = NULL,
                        db = NULL,
                        custom_bg = NULL,
                        protein_coding = TRUE,
@@ -78,7 +78,17 @@ iterEnrich <- function(anno_df = NULL,
                        maxGeneSetSize = 1e10,
                        print_genes = TRUE,
                        ncores = 1){
-  db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_cat <- gs_subcat <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
+  db_join <- pathway_GOID <- db_format <- gs_name <- gs_exact_source <- gs_collection <- gs_subcollection <- pathway <- `k/K` <- K <- pvalue <- genes <- n_pathway_genes <- n_query_genes_in_pathway <- value <- name <- FDR <- results <- median <- NULL
+
+  #Recode species
+  if(species %in% c("human", "Homo sapiens", "HS")){
+    db_species <- "HS"
+    species <- "human"
+  }
+  if(species %in% c("mouse", "Mus musculus", "MM")){
+    db_species <- "MM"
+    species = "mouse"
+  }
 
   #Set colnames if not provided
   if(is.null(anno_featCol)) { anno_featCol <- colnames(anno_df[1])}
@@ -105,21 +115,21 @@ iterEnrich <- function(anno_df = NULL,
   cl <- parallel::makeCluster(processors.to.use)
 
   ###### get pathway names for base data frame ######
-  if(!is.null(category)){
-    db.format <- msigdbr::msigdbr(species, category)
-    #Subset subcategory if selected
-    if(!is.null(subcategory)){
-      if(length(db.format$gs_subcat[which(db.format$gs_subcat == subcategory)]) == 0){
-        stop("Entered subcategory does not exist in MSigDB")
+  if(!is.null(collection)){
+    db.format <- msigdbr::msigdbr(species = species, collection = collection)
+    #Subset subcollection if selected
+    if(!is.null(subcollection)){
+      if(length(db.format$gs_subcollection[which(db.format$gs_subcollection == subcollection)]) == 0){
+        stop("Entered subcollection does not exist in MSigDB")
       }
       else{
         db.format <- db.format %>%
-          dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
+          dplyr::filter(grepl(paste0("^",subcollection), gs_subcollection))
       }
     }
   } else if(!is.null(db)){
     db.format <- db %>%
-      dplyr::mutate(gs_cat = "custom", gs_subcat=NA)
+      dplyr::mutate(gs_collection = "custom", gs_subcollection=NA)
     #Name columns to match mgsibdbr
     colnames(db.format)[1] <- "gs_name"
     if(ID == "SYMBOL"){
@@ -132,7 +142,7 @@ iterEnrich <- function(anno_df = NULL,
       stop("Please like ID from SYMBOL, ENSEMBL, or ENTREZ.")
     }
   } else {
-    stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
+    stop("Please provide gene set information as Broad collection/subcollection or in a data frame as db.")
   }
 
   # get db for flexEnrich entry
@@ -185,8 +195,8 @@ iterEnrich <- function(anno_df = NULL,
     prof <- flexEnrich(gene_list = gl,
                        ID = ID,
                        species = species,
-                       category = category,
-                       subcategory = subcategory,
+                       collection = collection,
+                       subcollection = subcollection,
                        db = db.enter,
                        custom_bg = custom_bg,
                        protein_coding = protein_coding,
@@ -325,8 +335,8 @@ iterEnrich <- function(anno_df = NULL,
     dplyr::mutate("group" = deparse(substitute(anno_df)), .before = pathway)
 
 
-  if(!is.null(category)){
-    if(category == "C5"){
+  if(!is.null(collection)){
+    if(collection == "C5"){
       db_join <- db.format %>%
         dplyr::select(c("gs_name", "gs_exact_source")) %>%
         dplyr::distinct()

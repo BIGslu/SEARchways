@@ -12,8 +12,8 @@ iterEnrich(
   p_adjust = "fdr",
   ID = "SYMBOL",
   species = "human",
-  category = NULL,
-  subcategory = NULL,
+  collection = NULL,
+  subcollection = NULL,
   db = NULL,
   custom_bg = NULL,
   protein_coding = TRUE,
@@ -39,11 +39,11 @@ iterEnrich(
 
 \item{species}{Character string denoting species of interest. "human" or "mouse." Default is "human"}
 
-\item{category}{Character string denoting Broad gene set database}
+\item{collection}{Character string denoting Broad gene set database}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database
+\item{subcollection}{Character string denoting Broad gene set sub-database
 \tabular{rrrrr}{
-\strong{category} \tab    \strong{subcategory}\cr
+\strong{collection} \tab    \strong{subcollection}\cr
 C1  \tab      \cr
 C2  \tab      CGP\cr
 C2  \tab      CP\cr
@@ -98,7 +98,7 @@ iterEnrich(anno_df = df,
            anno_featCol = "feat",
            anno_annotationCol = "annotation",
            niter = 3, ID = "ENSEMBL",
-           category = "H")
+           collection = "H")
 }
 \author{
 Madison Cox

@@ -5,10 +5,10 @@
 #' @param ID Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"
 #' @param nperm Numeric permutations for P-value calculations. Default is 1000
 #' @param species Character string denoting species of interest. Default is "human"
-#' @param category Character string denoting Broad gene set database
-#' @param subcategory Character string denoting Broad gene set sub-database \cr
+#' @param collection Character string denoting Broad gene set database
+#' @param subcollection Character string denoting Broad gene set sub-database \cr
 #' \tabular{rrrrr}{
-#'  \strong{category} \tab    \strong{subcategory}\cr
+#'  \strong{collection} \tab    \strong{subcollection}\cr
 #'  C1  \tab      \cr
 #'  C2  \tab      CGP\cr
 #'  C2  \tab      CP\cr
@@ -31,8 +31,8 @@
 #' @export
 #'
 #' @examples
-#' BIGsea(example.gene.list, category="H", ID="ENSEMBL")
-#' BIGsea(example.gene.list, category="C2", subcategory="CP", ID="ENSEMBL")
+#' BIGsea(example.gene.list, collection="H", ID="ENSEMBL")
+#' BIGsea(example.gene.list, collection="C2", subcollection="CP", ID="ENSEMBL")
 #'
 #' #Use gene_df
 #' gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
@@ -40,7 +40,7 @@
 #'                                names(example.gene.list[[2]])),
 #'                      logFC = c(example.gene.list[[1]],
 #'                                example.gene.list[[2]]))
-#' BIGsea(gene_df=gene_df, category="H", ID="ENSEMBL")
+#' BIGsea(gene_df=gene_df, collection="H", ID="ENSEMBL")
 #'
 #' #Use custom data base
 #' db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
@@ -50,23 +50,38 @@
 
 BIGsea <- function(gene_list = NULL, gene_df = NULL,
                    nperm=1000, species="human", ID="SYMBOL",
-                   category = NULL, subcategory = NULL, db = NULL){
-  gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- group <- gs_name <- gs_subcat <- padj <- pathway <- col1 <- NULL
+                   collection = NULL, subcollection = NULL, db = NULL){
+  gs_exact_source <- db_join <- pathway_GOID <- ensembl_gene <- entrez_gene <- gene_symbol <- group <- gs_name <- gs_subcollection <- padj <- pathway <- col1 <- NULL
+
+
+  #Recode species
+  if(species %in% c("human", "Homo sapiens", "HS")){
+    db_species <- "HS"
+    species <- "human"
+  }
+  if(species %in% c("mouse", "Mus musculus", "MM")){
+    db_species <- "MM"
+    species = "mouse"
+  }
+
+
   #Blank list to hold results
   all.results <- list()
 
   #### Database ####
   #Load gene ontology
-  if(!is.null(category)){
-    db.format <- msigdbr::msigdbr(species, category)
-    #Subset subcategory if selected
-    if(!is.null(subcategory)){
+  if(!is.null(collection)){
+
+
+    db.format <- msigdbr::msigdbr(species = species, collection = collection, db_species = db_species)
+    #Subset subcollection if selected
+    if(!is.null(subcollection)){
       db.format <- db.format %>%
-        dplyr::filter(grepl(paste0("^",subcategory), gs_subcat))
+        dplyr::filter(grepl(paste0("^",subcollection), gs_subcollection))
     }
   } else if(!is.null(db)){
     db.format <- db %>%
-      dplyr::mutate(gs_cat = "custom", gs_subcat=NA)
+      dplyr::mutate(gs_collection = "custom", gs_subcollection=NA)
     #Name columns to match mgsibdbr
     colnames(db.format)[1] <- "gs_name"
     if(ID == "SYMBOL"){
@@ -79,7 +94,7 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
       stop("Please like ID from SYMBOL, ENSEMBL, or ENTREZ.")
     }
   } else {
-    stop("Please provide gene set information as Broad category/subcategory or in a data frame as db.")
+    stop("Please provide gene set information as Broad collection/subcollection or in a data frame as db.")
   }
 
   #Get gene ID
@@ -156,11 +171,11 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
                                     scoreType=scoreType) %>%
       as.data.frame() %>%
       dplyr::rename(FDR=padj) %>%
-      dplyr::mutate(group=g, gs_cat=category, gs_subcat=subcategory, .before=1)
+      dplyr::mutate(group=g, gs_collection=collection, gs_subcollection=subcollection, .before=1)
 
     # add GO term reference ID to results
-    if(!is.null(category)){
-      if(category == "C5"){
+    if(!is.null(collection)){
+      if(collection == "C5"){
         db_join <- db.format %>%
           dplyr::select(c("gs_name", "gs_exact_source")) %>%
           dplyr::distinct()

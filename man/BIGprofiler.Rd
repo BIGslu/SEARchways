@@ -9,8 +9,8 @@ BIGprofiler(
   gene_df = NULL,
   ID = "SYMBOL",
   species = "human",
-  category = NULL,
-  subcategory = NULL,
+  collection = NULL,
+  subcollection = NULL,
   db = NULL
 )
 }
@@ -21,13 +21,13 @@ BIGprofiler(
 
 \item{ID}{Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is SYMBOL}
 
-\item{species}{Character string denoting species of interest. Default is human}
+\item{species}{Character string denoting species of interest. Default is "human"}
 
-\item{category}{Character string denoting Broad gene set database}
+\item{collection}{Character string denoting Broad gene set database}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database \cr
+\item{subcollection}{Character string denoting Broad gene set sub-database \cr
 \tabular{rrrrr}{
-\strong{category} \tab    \strong{subcategory}\cr
+\strong{collection} \tab    \strong{subcollection}\cr
 C1  \tab      \cr
 C2  \tab      CGP\cr
 C2  \tab      CP\cr
@@ -57,17 +57,17 @@ clusterProfiler of significant genes in Broad gene sets
 #Get gene names for enrichment
 gene_list <- list(HRV1 = names(example.gene.list[[1]]),
                   HRV2 = names(example.gene.list[[2]]))
-BIGprofiler(gene_list, ID="ENSEMBL", category="H")
+BIGprofiler(gene_list, ID="ENSEMBL", collection="H", species = "human")
 
 # Use gene_df
 gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
                       gene = c(names(example.gene.list[[1]]),
                                names(example.gene.list[[2]])))
-BIGprofiler(gene_df=gene_df, ID="ENSEMBL", category="H")
+BIGprofiler(gene_df=gene_df, ID="ENSEMBL", collection="H", species = "human")
 
 #Use custom data base
 db <- data.frame(module = c(rep("module1",10), rep("module2",10)),
                  symbol = sample(gene_list[[1]], 20))
 
-BIGprofiler(gene_list, ID="ENSEMBL", db=db)
+BIGprofiler(gene_list, ID="ENSEMBL", db=db, species = "human")
 }

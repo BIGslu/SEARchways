@@ -10,8 +10,8 @@ BIGsea(
   nperm = 1000,
   species = "human",
   ID = "SYMBOL",
-  category = NULL,
-  subcategory = NULL,
+  collection = NULL,
+  subcollection = NULL,
   db = NULL
 )
 }
@@ -26,11 +26,11 @@ BIGsea(
 
 \item{ID}{Character string for type of ID used in gene_list. One of SYMBOL, ENTREZ, ENSEMBL. Default is "SYMBOL"}
 
-\item{category}{Character string denoting Broad gene set database}
+\item{collection}{Character string denoting Broad gene set database}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database \cr
+\item{subcollection}{Character string denoting Broad gene set sub-database \cr
 \tabular{rrrrr}{
-\strong{category} \tab    \strong{subcategory}\cr
+\strong{collection} \tab    \strong{subcollection}\cr
 C1  \tab      \cr
 C2  \tab      CGP\cr
 C2  \tab      CP\cr
@@ -57,8 +57,8 @@ Data frame of enrichments including pathway, significance, and leading edge gene
 Run gene set enrichment analysis (GSEA) on multiple list using fgsea. More information about GSEA and geneset databases check https://www.gsea-msigdb.org/gsea/msigdb
 }
 \examples{
-BIGsea(example.gene.list, category="H", ID="ENSEMBL")
-BIGsea(example.gene.list, category="C2", subcategory="CP", ID="ENSEMBL")
+BIGsea(example.gene.list, collection="H", ID="ENSEMBL")
+BIGsea(example.gene.list, collection="C2", subcollection="CP", ID="ENSEMBL")
 
 #Use gene_df
 gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
@@ -66,7 +66,7 @@ gene_df <- data.frame(gs_name = c(rep("HRV1", 100), rep("HRV2",100)),
                                names(example.gene.list[[2]])),
                      logFC = c(example.gene.list[[1]],
                                example.gene.list[[2]]))
-BIGsea(gene_df=gene_df, category="H", ID="ENSEMBL")
+BIGsea(gene_df=gene_df, collection="H", ID="ENSEMBL")
 
 #Use custom data base
 db <- data.frame(module = c(rep("module1",10), rep("module2",10)),

@@ -9,8 +9,8 @@ flexEnrich(
   gene_df = NULL,
   ID = "SYMBOL",
   species = "human",
-  category = NULL,
-  subcategory = NULL,
+  collection = NULL,
+  subcollection = NULL,
   db = NULL,
   custom_bg = NULL,
   protein_coding = TRUE,
@@ -29,9 +29,9 @@ flexEnrich(
 
 \item{species}{Character string denoting species of interest. "human" or "mouse" Default is "human"}
 
-\item{category}{Character string denoting Broad gene set database}
+\item{collection}{Character string denoting Broad gene set database}
 
-\item{subcategory}{Character string denoting Broad gene set sub-database}
+\item{subcollection}{Character string denoting Broad gene set sub-database}
 
 \item{db}{Custom database}
 
@@ -56,7 +56,7 @@ Run hypergeometric enrichment on multiple lists using phyper. Permits gene symbo
 \examples{
 gene_list <- list(HRV1 = names(example.gene.list[[1]]),
                   HRV2 = names(example.gene.list[[2]]))
-flexEnrich(gene_list = gene_list, category = "H", ID = "ENSEMBL")
+flexEnrich(gene_list = gene_list, collection = "H", ID = "ENSEMBL")
 }
 \author{
 Madison Cox

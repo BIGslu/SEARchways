@@ -66,7 +66,7 @@ flexEnrich <- function(gene_list = NULL,
       species <- "Mus musculus"
       db_species <- "MM"
     }
-    db.format <- msigdbr::msigdbr(species, db_species, collection=collection)
+    db.format <- msigdbr::msigdbr(species = species, db_species = db_species, collection = collection)
     # remove gene sets that are too small or too large
     good_pw <- db.format %>%
       dplyr::group_by(gs_name) %>%

@@ -111,7 +111,7 @@ iterEnrich <- function(anno_df = NULL,
       species <- "Mus musculus"
       db_species <- "MM"
     }
-    db.format <- msigdbr::msigdbr(species, db_species, collection=collection)
+    db.format <- msigdbr::msigdbr(species = species, db_species = db_species, collection = collection)
     #Subset subcollection if selected
     if(!is.null(subcollection)){
       #Check that subcollection exists in msigdb

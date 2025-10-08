@@ -52,12 +52,6 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
   ##### Database #####
   #Load gene ontology
   if(!is.null(collection)){
-    #Check that collection exists in msigdb
-    all_cat <- msigdbr::msigdbr_collections() %>%
-      dplyr::pull(gs_collection) %>% unique()
-    if(!collection %in% all_cat){
-      stop("collection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
-
     #Recode species
     if(species == "human"){
       species <- "Homo sapiens"
@@ -67,6 +61,13 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
       species <- "Mus musculus"
       db_species <- "MM"
     }
+
+    #Check that collection exists in msigdb
+    all_cat <- msigdbr::msigdbr_collections(db_species = db_species) %>%
+      dplyr::pull(gs_collection) %>% unique()
+    if(!collection %in% all_cat){
+      stop("collection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
     db.format <- msigdbr::msigdbr(species = species, db_species = db_species, collection = collection)
     #Subset subcollection if selected
     if(!is.null(subcollection)){
@@ -209,7 +210,7 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
         }
 
         #Run enrich and save to results list
-        all.results[[g]] <- result.clean
+        all.results[[as.character(g)]] <- result.clean
     }
     }else {
       all.results[[g]] <- tibble::tibble(

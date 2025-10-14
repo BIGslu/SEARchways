@@ -117,6 +117,8 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
     gene_list_format <- list()
     col1 <- colnames(gene_df)[1]
     col2 <- colnames(gene_df)[2]
+    #make sure the data in column 1 is character - avoids issues with the name being numeric
+    gene_df <- gene_df %>% dplyr::mutate_at(col1,as.character)
     for(g in unique(unlist(gene_df[,1]))){
       gene_list_format[[g]] <- gene_df %>%
         dplyr::filter(get(col1) == g) %>%
@@ -210,7 +212,7 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
         }
 
         #Run enrich and save to results list
-        all.results[[as.character(g)]] <- result.clean
+        all.results[[g]] <- result.clean
     }
     }else {
       all.results[[g]] <- tibble::tibble(

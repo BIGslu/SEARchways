@@ -82,12 +82,6 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
   #### Database ####
   #Load gene ontology
   if(!is.null(collection)){
-    #Check that collection exists in msigdb
-    all_cat <- msigdbr::msigdbr_collections() %>%
-      dplyr::pull(gs_collection) %>% unique()
-    if(!collection %in% all_cat){
-      stop("collection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
-
     #Recode species
     if(species == "human"){
       species <- "Homo sapiens"
@@ -97,6 +91,13 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
       species <- "Mus musculus"
       db_species <- "MM"
     }
+
+    #Check that collection exists in msigdb
+    all_cat <- msigdbr::msigdbr_collections(db_species = db_species) %>%
+      dplyr::pull(gs_collection) %>% unique()
+    if(!collection %in% all_cat){
+      stop("collection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
     db.format <- msigdbr::msigdbr(species = species, db_species = db_species, collection = collection)
     #Subset subcollection if selected
     if(!is.null(subcollection)){
@@ -164,6 +165,9 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
   if(!is.null(gene_df)){
     gene_list_format <- list()
     col1 <- colnames(gene_df)[1]
+    #make sure the data in the column is character - avoids issues with the name being numeric
+    gene_df <- gene_df %>% dplyr::mutate_at(col1,as.character)
+
     for(g in unique(unlist(gene_df[,1]))){
       temp <- gene_df %>%
         dplyr::filter(get(col1) == g) %>%

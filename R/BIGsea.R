@@ -167,6 +167,7 @@ BIGsea <- function(gene_list = NULL, gene_df = NULL,
     col1 <- colnames(gene_df)[1]
     #make sure the data in the column is character - avoids issues with the name being numeric
     gene_df <- gene_df %>% dplyr::mutate_at(col1,as.character)
+
     for(g in unique(unlist(gene_df[,1]))){
       temp <- gene_df %>%
         dplyr::filter(get(col1) == g) %>%

@@ -119,6 +119,7 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
     col2 <- colnames(gene_df)[2]
     #make sure the data in column 1 is character - avoids issues with the name being numeric
     gene_df <- gene_df %>% dplyr::mutate_at(col1,as.character)
+
     for(g in unique(unlist(gene_df[,1]))){
       gene_list_format[[g]] <- gene_df %>%
         dplyr::filter(get(col1) == g) %>%

@@ -95,12 +95,6 @@ iterEnrich <- function(anno_df = NULL,
 
   ###### get pathway names for base data frame ######
   if(!is.null(collection)){
-    #Check that collection exists in msigdb
-    all_cat <- msigdbr::msigdbr_collections() %>%
-      dplyr::pull(gs_collection) %>% unique()
-    if(!collection %in% all_cat){
-      stop("collection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
-
     #Recode species
     species_og <- species
     if(species == "human"){
@@ -111,6 +105,13 @@ iterEnrich <- function(anno_df = NULL,
       species <- "Mus musculus"
       db_species <- "MM"
     }
+
+    #Check that collection exists in msigdb
+    all_cat <- msigdbr::msigdbr_collections(db_species = db_species) %>%
+      dplyr::pull(gs_collection) %>% unique()
+    if(!collection %in% all_cat){
+      stop("collection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
     db.format <- msigdbr::msigdbr(species = species, db_species = db_species, collection = collection)
     #Subset subcollection if selected
     if(!is.null(subcollection)){

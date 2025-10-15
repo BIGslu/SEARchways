@@ -51,12 +51,6 @@ flexEnrich <- function(gene_list = NULL,
   #Load gene ontology
 
   if(!is.null(collection)){
-    #Check that collection exists in msigdb
-    all_cat <- msigdbr::msigdbr_collections() %>%
-      dplyr::pull(gs_collection) %>% unique()
-    if(!collection %in% all_cat){
-      stop("collection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
-
     #Recode species
     if(species == "human"){
       species <- "Homo sapiens"
@@ -66,6 +60,13 @@ flexEnrich <- function(gene_list = NULL,
       species <- "Mus musculus"
       db_species <- "MM"
     }
+
+    #Check that collection exists in msigdb
+    all_cat <- msigdbr::msigdbr_collections(db_species = db_species) %>%
+      dplyr::pull(gs_collection) %>% unique()
+    if(!collection %in% all_cat){
+      stop("collection does not exist. Use msigdbr::msigdbr_collections() to see options.") }
+
     db.format <- msigdbr::msigdbr(species = species, db_species = db_species, collection = collection)
     # remove gene sets that are too small or too large
     good_pw <- db.format %>%
@@ -137,6 +138,10 @@ flexEnrich <- function(gene_list = NULL,
     gene_list_format <- list()
     col1 <- colnames(gene_df)[1]
     col2 <- colnames(gene_df)[2]
+
+    #make sure the data in the column is character - avoids issues with the name being numeric
+    gene_df <- gene_df %>% dplyr::mutate_at(col1,as.character)
+
     for(g in unique(unlist(gene_df[,1]))){
       gene_list_format[[g]] <- gene_df %>%
         dplyr::filter(get(col1) == g) %>%

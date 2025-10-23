@@ -12,7 +12,7 @@
 #' @param minGSSize Numeric. Minimum size of genes annotated for testing (minimum pathway
 #'   size). Default \code{10}. See [clusterProfiler::enricher()]
 #' @param maxGSSize Numeric. Maximum size of genes annotated for testing (maximum pathway
-#'   size). Default \code{500}. See [clusterProfiler::enricher()]
+#'   size). Default \code{1e10}. See [clusterProfiler::enricher()]
 #' @param category Deprecated
 #' @param subcategory Deprecated
 #' @return Data frame of enrichments including pathway, significance, and genes
@@ -42,7 +42,7 @@ BIGprofiler <- function(gene_list = NULL, gene_df = NULL, ID = "SYMBOL",
                         collection = NULL, subcollection = NULL,
                         db = NULL,
                         minGSSize = 10,
-                        maxGSSize = 500,
+                        maxGSSize = 1e10,
                         category = NULL,
                         subcategory = NULL){
   db_join <- pathway_GOID <- gs_exact_source <- BgRatio <- Description <- FDR <- GeneRatio <- ensembl_gene <- entrez_gene <- geneID <- gene_symbol <- genes <- group <- n_query_genes_in_pathway <- gs_collection <- gs_name <- gs_subcollection <- `k/K` <- p.adjust <- pathway <- pval <- pvalue <- qvalue <- n_background_genes <- n_query_genes <- n_pathway_genes <- gene_list_overlap <- db_species <- NULL

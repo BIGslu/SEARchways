@@ -47,19 +47,20 @@ flexEnrich <- function(gene_list = NULL,
 
   if(!is.null(category)){stop("category is deprecated. Please use collection.")}
 
+  #Recode species
+  if(species == "human"){
+    species <- "Homo sapiens"
+    db_species <- "HS"
+  }
+  if(species == "mouse"){
+    species <- "Mus musculus"
+    db_species <- "MM"
+  }
+
   ##### Database #####
   #Load gene ontology
 
   if(!is.null(collection)){
-    #Recode species
-    if(species == "human"){
-      species <- "Homo sapiens"
-      db_species <- "HS"
-    }
-    if(species == "mouse"){
-      species <- "Mus musculus"
-      db_species <- "MM"
-    }
 
     #Check that collection exists in msigdb
     all_cat <- msigdbr::msigdbr_collections(db_species = db_species) %>%

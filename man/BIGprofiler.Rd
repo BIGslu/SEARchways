@@ -13,7 +13,7 @@ BIGprofiler(
   subcollection = NULL,
   db = NULL,
   minGSSize = 10,
-  maxGSSize = 500,
+  maxGSSize = 1e+10,
   category = NULL,
   subcategory = NULL
 )
@@ -39,7 +39,7 @@ gene_symbol, entrez_gene, or ensembl_gene as matches your gene_list names)}
 size). Default \code{10}. See \code{\link[clusterProfiler:enricher]{clusterProfiler::enricher()}}}
 
 \item{maxGSSize}{Numeric. Maximum size of genes annotated for testing (maximum pathway
-size). Default \code{500}. See \code{\link[clusterProfiler:enricher]{clusterProfiler::enricher()}}}
+size). Default \code{1e10}. See \code{\link[clusterProfiler:enricher]{clusterProfiler::enricher()}}}
 
 \item{category}{Deprecated}
 

@@ -97,11 +97,11 @@ iterEnrich <- function(anno_df = NULL,
   if(!is.null(collection)){
     #Recode species
     species_og <- species
-    if(species == "human"){
+    if(species %in% c("human", "Homo sapiens", "HS")){
       species <- "Homo sapiens"
       db_species <- "HS"
     }
-    if(species == "mouse"){
+    if(species %in% c("mouse", "Mus musculus", "MM")){
       species <- "Mus musculus"
       db_species <- "MM"
     }

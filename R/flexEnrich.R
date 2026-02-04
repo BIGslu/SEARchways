@@ -48,11 +48,11 @@ flexEnrich <- function(gene_list = NULL,
   if(!is.null(category)){stop("category is deprecated. Please use collection.")}
 
   #Recode species
-  if(species == "human"){
+  if(species %in% c("human", "Homo sapiens", "HS")){
     species <- "Homo sapiens"
     db_species <- "HS"
   }
-  if(species == "mouse"){
+  if(species %in% c("mouse", "Mus musculus", "MM")){
     species <- "Mus musculus"
     db_species <- "MM"
   }
